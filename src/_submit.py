@@ -73,6 +73,7 @@ class Submitter(Form, Base):
         self.items.extend(items)
         
     def removeItem(self, item):
+        pc.PyNode(item.getCamera()).shotInfo.delete()
         self.items.remove(item)
         item.deleteLater()
         
@@ -95,9 +96,6 @@ class Submitter(Form, Base):
         ShotForm(self, item).show()
     
     def createItem(self, data):
-        for itm in self.items:
-            if itm.getCamera() == data['camera']:
-                self.removeItem(itm)
         item = Item(self)
         item.setTitle(data['name'])
         item.setCamera(data['camera'])
@@ -116,19 +114,30 @@ class Submitter(Form, Base):
                                          if i.isChecked()]))
         count = 1
         origCam = pc.lookThru(q=True)
+        errors = {}
         for item in self.items:
-            if item.isChecked():
-                data.clear()
-                self.progressBar.setValue(count)
-                qApp.processEvents()
-                data['start'] = item.getFrame().split()[0]
-                data['end'] = item.getFrame().split()[-1]
-                data['path'] = osp.join(item.getPath(), item.getTitle())
-                pc.select(item.getCamera()); pc.lookThru(item.getCamera())
-                backend.playblast(data)
-                count += 1
+            try:
+                if item.isChecked():
+                    data.clear()
+                    self.progressBar.setValue(count)
+                    qApp.processEvents()
+                    data['start'] = item.getFrame().split()[0]
+                    data['end'] = item.getFrame().split()[-1]
+                    data['path'] = osp.join(item.getPath(), item.getTitle())
+                    pc.select(item.getCamera()); pc.lookThru(item.getCamera())
+                    backend.playblast(data)
+                    count += 1
+            except Exception as e:
+                errors[item.getTitle()] = str(e)
         self.progressBar.hide()
         pc.lookThru(origCam)
+        if errors:
+            detail = ''
+            for shot in errors:
+                detail += 'Shot: '+ shot +'\nReason: '+ errors[shot] +'\n\n'
+            showMessage(self, title='Error', msg=str(len(errors))+
+                        ' shot(s) was not exported successfully',
+                        icon=QMessageBox.Critical, details=detail)
         
     def closeEvent(self, event):
         self.deleteLater()
@@ -234,7 +243,16 @@ class ShotForm(Form1, Base1):
                         'the path specified', icon=QMessageBox.Information)
             return
         data['path'] = path
+        for itm in self.parentWin.getItems():
+            if itm.getCamera() == data['camera']:
+                if self.item:
+                    if itm != self.item:
+                        self.parentWin.removeItem(itm)
+                else:
+                    self.parentWin.removeItem(itm)
         if self.item:
+            if camera != self.item.getCamera():
+                pc.PyNode(self.item.getCamera()).shotInfo.delete()
             self.item.setTitle(name)
             self.item.setCamera(camera)
             self.item.setFrame(str(start) +' to '+ str(end))
@@ -288,11 +306,9 @@ class Item(Form2, Base2):
         
     def delete(self):
         btn = showMessage(self, title='Delete Shot', msg='Are you sure, delete '
-                    +'"'+ self.getTitle() +'"?', icon=QMessageBox.Question,
+                    +'"'+ self.getTitle() +'"?', icon=QMessageBox.Critical,
                     btns=QMessageBox.Yes|QMessageBox.No)
         if btn == QMessageBox.Yes:
-            pc.PyNode(self.getCamera()).shotInfo.delete()
-            self.deleteLater()
             self.parentWin.removeItem(self)
         else:
             pass
