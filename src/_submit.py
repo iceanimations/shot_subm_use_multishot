@@ -116,13 +116,14 @@ class Submitter(Form, Base):
                                          if i.isChecked()]))
         count = 1
         for item in self.items:
-            data.clear()
             if item.isChecked():
+                data.clear()
                 self.progressBar.setValue(count)
                 qApp.processEvents()
                 data['start'] = item.getFrame().split()[0]
                 data['end'] = item.getFrame().split()[-1]
                 data['path'] = osp.join(item.getPath(), item.getTitle())
+                pc.select(item.getCamera()); pc.lookThru(item.getCamera())
                 backend.playblast(data)
                 count += 1
         self.progressBar.hide()
@@ -225,6 +226,10 @@ class ShotForm(Form1, Base1):
         if not path:
             showMessage(self,
                         msg='Path not specified', icon=QMessageBox.Warning)
+            return
+        if not osp.exists(path):
+            showMessage(self, title='Error', msg='The system can not find '+
+                        'the path specified', icon=QMessageBox.Information)
             return
         data['path'] = path
         if self.item:
