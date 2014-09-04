@@ -6,7 +6,7 @@ Created on Sep 1, 2014
 import site
 site.addsitedir(r'R:\Pipe_Repo\Users\Qurban\utilities')
 from uiContainer import uic
-from PyQt4.QtGui import QIcon, QMessageBox, QFileDialog
+from PyQt4.QtGui import QIcon, QMessageBox, QFileDialog, qApp
 from PyQt4 import QtCore
 import os.path as osp
 import qtify_maya_window as qtfy
@@ -25,6 +25,7 @@ class Submitter(Form, Base):
     def __init__(self, parent=qtfy.getMayaWindow()):
         super(Submitter, self).__init__(parent)
         self.setupUi(self)
+        self.progressBar.hide()
         self.items = []
         self.addButton.setIcon(QIcon(osp.join(icon_path, 'ic_add.png')))
         search_ic_path = osp.join(icon_path, 'ic_search.png').replace('\\','/')
@@ -109,13 +110,22 @@ class Submitter(Form, Base):
 
     def export(self):
         data = {}
+        self.progressBar.show()
+        self.progressBar.setMinimum(0)
+        self.progressBar.setMaximum(len([i for i in self.items
+                                         if i.isChecked()]))
+        count = 1
         for item in self.items:
             data.clear()
             if item.isChecked():
+                self.progressBar.setValue(count)
+                qApp.processEvents()
                 data['start'] = item.getFrame().split()[0]
                 data['end'] = item.getFrame().split()[-1]
                 data['path'] = osp.join(item.getPath(), item.getTitle())
                 backend.playblast(data)
+                count += 1
+        self.progressBar.hide()
         
     def closeEvent(self, event):
         self.deleteLater()
