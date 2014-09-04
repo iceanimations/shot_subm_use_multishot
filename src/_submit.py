@@ -115,6 +115,7 @@ class Submitter(Form, Base):
         self.progressBar.setMaximum(len([i for i in self.items
                                          if i.isChecked()]))
         count = 1
+        origCam = pc.lookThru(q=True)
         for item in self.items:
             if item.isChecked():
                 data.clear()
@@ -127,6 +128,7 @@ class Submitter(Form, Base):
                 backend.playblast(data)
                 count += 1
         self.progressBar.hide()
+        pc.lookThru(origCam)
         
     def closeEvent(self, event):
         self.deleteLater()
