@@ -27,7 +27,10 @@ class Submitter(Form, Base):
         self.setupUi(self)
         self.progressBar.hide()
         self.items = []
+        self.collapsed = False
         self.addButton.setIcon(QIcon(osp.join(icon_path, 'ic_add.png')))
+        self.collapseButton.setIcon(QIcon(osp.join(icon_path,
+                                                   'ic_toggle_collapse')))
         search_ic_path = osp.join(icon_path, 'ic_search.png').replace('\\','/')
         style_sheet = ('\nbackground-image: url(%s);'+
                        '\nbackground-repeat: no-repeat;'+
@@ -35,6 +38,7 @@ class Submitter(Form, Base):
         style_sheet = self.searchBox.styleSheet() + style_sheet
         self.searchBox.setStyleSheet(style_sheet)
         
+        self.collapseButton.clicked.connect(self.toggleCollapseAll)
         self.addButton.clicked.connect(self.showForm)
         self.selectAllButton.clicked.connect(self.selectAll)
         self.searchBox.textChanged.connect(self.searchShots)
@@ -43,10 +47,15 @@ class Submitter(Form, Base):
         self.exportButton.clicked.connect(self.export)
         self.poplate()
         
-    def searchShots(self, text):
-        text = str(text)
+    def toggleCollapseAll(self):
+        self.collapsed = not self.collapsed
         for item in self.items:
-            if text in item.getTitle():
+            item.toggleCollapse(self.collapsed)    
+    
+    def searchShots(self, text):
+        text = str(text).lower()
+        for item in self.items:
+            if text in item.getTitle().lower():
                 item.show()
             else:
                 item.hide()
@@ -86,7 +95,7 @@ class Submitter(Form, Base):
         return self.items
     
     def poplate(self):
-        for cam in [x for x in pc.ls(type='camera')
+        for cam in [x.firstParent() for x in pc.ls(type='camera')
                     if x.orthographic.get() == False]:
             if pc.attributeQuery('shotInfo', node=cam, exists=True):
                 data = eval(cam.shotInfo.get())
@@ -104,14 +113,19 @@ class Submitter(Form, Base):
         self.items.append(item)
         self.layout.addWidget(item)
         item.setChecked(self.selectAllButton.isChecked())
+        item.toggleCollapse(self.collapsed)
         
 
     def export(self):
         data = {}
+        self.exportButton.setEnabled(False)
+        self.closeButton.setEnabled(False)
         self.progressBar.show()
         self.progressBar.setMinimum(0)
         self.progressBar.setMaximum(len([i for i in self.items
                                          if i.isChecked()]))
+        self.progressBar.setValue(0)
+        qApp.processEvents()
         count = 1
         origCam = pc.lookThru(q=True)
         errors = {}
@@ -119,13 +133,13 @@ class Submitter(Form, Base):
             try:
                 if item.isChecked():
                     data.clear()
-                    self.progressBar.setValue(count)
-                    qApp.processEvents()
                     data['start'] = item.getFrame().split()[0]
                     data['end'] = item.getFrame().split()[-1]
                     data['path'] = osp.join(item.getPath(), item.getTitle())
                     pc.select(item.getCamera()); pc.lookThru(item.getCamera())
                     backend.playblast(data)
+                    self.progressBar.setValue(count)
+                    qApp.processEvents()
                     count += 1
             except Exception as e:
                 errors[item.getTitle()] = str(e)
@@ -138,6 +152,8 @@ class Submitter(Form, Base):
             showMessage(self, title='Error', msg=str(len(errors))+
                         ' shot(s) was not exported successfully',
                         icon=QMessageBox.Critical, details=detail)
+        self.exportButton.setEnabled(True)
+        self.closeButton.setEnabled(True)
         
     def closeEvent(self, event):
         self.deleteLater()
@@ -152,10 +168,13 @@ class ShotForm(Form1, Base1):
         self.addCameras()
         self.item = item
         if item:
-            self.createButton.setText('Edit')
+            self.createButton.setText('Ok')
             self.populate()
         self.startFrame = None
         self.endFrame = None
+        
+        self.upButton.setIcon(QIcon(osp.join(icon_path, 'ic_up.png')))
+        self.downButton.setIcon(QIcon(osp.join(icon_path, 'ic_down.png')))
         
         self.cameraBox.activated.connect(self.handleCameraBox)
         self.createButton.clicked.connect(self.create)
@@ -177,8 +196,9 @@ class ShotForm(Form1, Base1):
     
     def addCameras(self):
         cams = pc.ls(type='camera')
-        self.cameraBox.addItems([cam.name() for cam in cams
+        self.cameraBox.addItems([cam.firstParent().name() for cam in cams
                                 if cam.orthographic.get() == False])
+        self.cameraBox.view().setFixedWidth(self.cameraBox.sizeHint().width())
         
     def populate(self):
         self.nameBox.setText(self.item.getTitle())
@@ -187,13 +207,13 @@ class ShotForm(Form1, Base1):
             if camera == str(self.cameraBox.itemText(index)):
                 self.cameraBox.setCurrentIndex(index)
                 break
-        self.startFrameBox.setValue(int(self.item.getFrame().split()[0]))
-        self.endFrameBox.setValue(int(self.item.getFrame().split()[-1]))
+        self.startFrameBox.setValue(float(self.item.getFrame().split()[0]))
+        self.endFrameBox.setValue(float(self.item.getFrame().split()[-1]))
         self.pathBox.setText(self.item.getPath())
     
     def getKeyFrame(self):
         camera = pc.PyNode(str(self.cameraBox.currentText()))
-        animCurves = pc.listConnections(camera.firstParent(), scn=True,
+        animCurves = pc.listConnections(camera, scn=True,
                                         d=False, s=True)
         if not animCurves:
             showMessage(self,
@@ -274,7 +294,8 @@ class ShotForm(Form1, Base1):
         camera.shotInfo.set(str(data))
 #             else:
 #                 pass
-        self.accept()
+        if self.item:
+            self.accept()
         
     def closeEvent(self, event):
         self.deleteLater()
@@ -292,14 +313,38 @@ class Item(Form2, Base2):
         super(Item, self).__init__(parent)
         self.setupUi(self)
         self.parentWin = parent
+        self.collapsed = False
+        self.style = ('background-image: url(%s);\n'+
+                      'background-repeat: no-repeat;\n'+
+                      'background-position: center right')
         
         self.editButton.setIcon(QIcon(osp.join(icon_path, 'ic_edit.png')))
         self.deleteButton.setIcon(QIcon(osp.join(icon_path, 'ic_delete.png')))
+        self.iconLabel.setStyleSheet(self.style%osp.join(icon_path,
+                                                         'ic_collapse.png'))
         
         self.editButton.clicked.connect(self.edit)
         self.clicked.connect(self.parentWin.itemClicked)
+        self.selectButton.clicked.connect(self.parentWin.itemClicked)
         self.deleteButton.clicked.connect(self.delete)
         self.browseButton.clicked.connect(self.openLocation)
+        self.titleFrame.mouseReleaseEvent = self.collapse
+        
+    def collapse(self, event=None):
+        if self.collapsed:
+            self.frame.show()
+            self.collapsed = False
+            path = osp.join(icon_path, 'ic_collapse.png')
+        else:
+            self.frame.hide()
+            self.collapsed = True
+            path = osp.join(icon_path, 'ic_expand.png')
+        path = path.replace('\\', '/')
+        self.iconLabel.setStyleSheet(self.style%path)
+    
+    def toggleCollapse(self, state):
+        self.collapsed = not state
+        self.collapse()
         
     def openLocation(self):
         subprocess.call('explorer %s'%self.getPath(), shell=True)

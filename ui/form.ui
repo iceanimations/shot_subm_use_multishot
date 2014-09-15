@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>331</width>
-    <height>174</height>
+    <height>561</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -25,7 +25,7 @@
   <property name="maximumSize">
    <size>
     <width>331</width>
-    <height>174</height>
+    <height>561</height>
    </size>
   </property>
   <property name="windowTitle">
@@ -197,7 +197,7 @@
        <item>
         <widget class="QPushButton" name="cancelButton">
          <property name="text">
-          <string>Cancel</string>
+          <string>Close</string>
          </property>
         </widget>
        </item>
@@ -249,6 +249,56 @@
      </item>
     </layout>
    </item>
+   <item>
+    <widget class="QListWidget" name="selectedLayersBox"/>
+   </item>
+   <item>
+    <layout class="QHBoxLayout" name="horizontalLayout_6">
+     <item>
+      <spacer name="horizontalSpacer_2">
+       <property name="orientation">
+        <enum>Qt::Horizontal</enum>
+       </property>
+       <property name="sizeHint" stdset="0">
+        <size>
+         <width>40</width>
+         <height>20</height>
+        </size>
+       </property>
+      </spacer>
+     </item>
+     <item>
+      <widget class="QToolButton" name="upButton">
+       <property name="text">
+        <string>...</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QToolButton" name="downButton">
+       <property name="text">
+        <string>...</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <spacer name="horizontalSpacer_3">
+       <property name="orientation">
+        <enum>Qt::Horizontal</enum>
+       </property>
+       <property name="sizeHint" stdset="0">
+        <size>
+         <width>40</width>
+         <height>20</height>
+        </size>
+       </property>
+      </spacer>
+     </item>
+    </layout>
+   </item>
+   <item>
+    <widget class="QListWidget" name="allLayersBox"/>
+   </item>
   </layout>
  </widget>
  <tabstops>
@@ -270,12 +320,12 @@
    <slot>setDisabled(bool)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>43</x>
-     <y>97</y>
+     <x>54</x>
+     <y>95</y>
     </hint>
     <hint type="destinationlabel">
-     <x>154</x>
-     <y>126</y>
+     <x>193</x>
+     <y>123</y>
     </hint>
    </hints>
   </connection>
@@ -290,8 +340,8 @@
      <y>95</y>
     </hint>
     <hint type="destinationlabel">
-     <x>109</x>
-     <y>121</y>
+     <x>99</x>
+     <y>123</y>
     </hint>
    </hints>
   </connection>
