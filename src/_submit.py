@@ -48,6 +48,9 @@ class Submitter(Form, Base):
         self.exportButton.clicked.connect(self.export)
         self.poplate()
         
+        import appUsageApp
+        appUsageApp.updateDatabase('shot_subm')
+        
     def toggleCollapseAll(self):
         self.collapsed = not self.collapsed
         for item in self.items:
