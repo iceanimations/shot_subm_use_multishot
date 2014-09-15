@@ -22,6 +22,7 @@ icon_path = osp.join(root_path, 'icons')
 
 Form, Base = uic.loadUiType(osp.join(ui_path, 'submitter.ui'))
 class Submitter(Form, Base):
+    _previousPath = ''
     def __init__(self, parent=qtfy.getMayaWindow()):
         super(Submitter, self).__init__(parent)
         self.setupUi(self)
@@ -172,6 +173,16 @@ class ShotForm(Form1, Base1):
             self.populate()
         self.startFrame = None
         self.endFrame = None
+
+        self.upButton.setIcon(QIcon(osp.join(icon_path, 'ic_up.png')))
+        self.downButton.setIcon(QIcon(osp.join(icon_path, 'ic_down.png')))
+        
+        # this code shall remain here until the layer UI is populated
+        self.upButton.hide()
+        self.downButton.hide()
+        self.allLayersBox.hide()
+        self.selectedLayersBox.hide()
+        self.resize(self.sizeHint())
         
         self.upButton.setIcon(QIcon(osp.join(icon_path, 'ic_up.png')))
         self.downButton.setIcon(QIcon(osp.join(icon_path, 'ic_down.png')))
@@ -182,9 +193,13 @@ class ShotForm(Form1, Base1):
         self.browseButton.clicked.connect(self.browseFolder)
         
     def browseFolder(self):
-        path = QFileDialog.getExistingDirectory(self, 'Select Folder', '',
-                                                QFileDialog.ShowDirsOnly)
+        path = self.parentWin._previousPath
+        if not path: 
+            path = pc.workspace(q=1, dir=1)
+        path = QFileDialog.getExistingDirectory(self, 'Select Folder',
+                path, QFileDialog.ShowDirsOnly)
         if path:
+            self.parentWin._previousPath = path
             self.pathBox.setText(path)
         
     def handleCameraBox(self, camera):
