@@ -38,25 +38,27 @@ class ActionList(OrderedDict):
             cls = actionsubs.get(ak)
             if cls:
                 self[ak]=cls(item.actions[ak])
+                self[ak].__item__ = item
             else:
                 self[ak]=item.actions[ak]
 
     def getActions(self):
         actions = [] 
         for ak in self.keys():
-            if isinstance(ak, Action):
+            if isinstance(self[ak], Action):
+                print self[ak]
                 actions.append(self[ak])
         return actions
 
     def perform(self):
         for action in self.getActions():
-            action.peform()
+            action.perform()
 
     def add(self, action):
         if not isinstance(action, Action):
             raise TypeError, "only Actions can be added"
         classname = action.__class__.__name__
-        action.item = self._item
+        action._item = self._item
         self[classname] = action
 
     def remove(self, action):
@@ -70,6 +72,7 @@ class ActionList(OrderedDict):
 class Action(OrderedDict):
     __metaclass__ = ABCMeta
     _conf = None
+    __item__ = None
 
     def __init__(self, item=None, *args, **kwargs):
         super(Action, self).__init__(*args, **kwargs)
@@ -78,11 +81,14 @@ class Action(OrderedDict):
     def perform(self, item):
         pass
 
-    def setItem(self, item):
-        self._item = item
-    def getItem(self, item):
-        return self._item
-    item = property(getItem, setItem)
+    def _item():
+        doc = "The _item property."
+        def fget(self):
+            return self.__item__
+        def fset(self, value):
+            self.__item__ = value
+        return locals()
+    _item = property(**_item())
 
     def read_conf(self, confname=''):
         if not confname:
@@ -115,12 +121,11 @@ class Action(OrderedDict):
 
 
 class PlayblastExport(Action):
-    _item=None
     _conf=None
-    def __init__(self, path, *args, **kwargs):
+    def __init__(self, *args, **kwargs):
         super(Action, self).__init__(*args, **kwargs)
         self._conf = self.initConf()
-        self['path']=path
+        #self['path']=path
 
     @staticmethod
     def initConf():
@@ -140,13 +145,12 @@ class PlayblastExport(Action):
         playblastargs['fp']=4
         playblastargs['offScreen']=True
         huds = OrderedDict()
-        huds['HUDDate'] = {}
         conf['playblastargs']=playblastargs
         conf['HUDs']=huds
         return conf
 
     def perform(self, readconf=True):
-        item = self._item
+        item = self.__item__
         try:
             if readconf: self.read_conf()
         except IOError:
@@ -159,7 +163,7 @@ class PlayblastExport(Action):
         # Show layers back
         self.removeHUDs()
 
-    def makeHUDs(self):
+    def addHUDs(self):
         conf = self._conf
         for hud in conf.get('HUDs', []):
             if pc.headsUpDisplay(hud, q=True, exists=True):
@@ -175,16 +179,50 @@ class PlayblastExport(Action):
 
     def makePlayblast(self, item=None):
         if not item:
-            item = self._item
+            item = self.__item__
             if not item:
                 pc.warning("Item not set: cannot make playblast")
 
         conf = self._conf
 
+        print self['path'], type(self['path']), item.name
         pc.playblast(st=item.getInFrame(),
                 et=item.getOutFrame(),
                 f=osp.join(self['path'], item.name),
                 **conf['playblastargs'])
+
+def test():
+    import shot_subm.src.backend.shotactions as sa
+    reload(sa)
+
+    import shot_subm.src.backend.shotplaylist as spl
+    reload(spl)
+
+    from collections import OrderedDict
+    import pymel.core as pc
+    pc.mel.eval('file -f -options "v=0;" -loadReferenceDepth "none"  -typ "mayaAscii" -o "D:/talha.ahmed/Documents/Downloads/S02EP22_SEQ03_Sh01-Sh09(7).ma";addRecentFile("D:/talha.ahmed/Documents/Downloads/S02EP22_SEQ03_Sh01-Sh09(7).ma", "mayaAscii");')
+    pl = spl.Playlist()
+    for cam in pc.ls(type='camera'):
+        pl.addNewItem(cam.firstParent())
+
+
+    for item in pl.getItems():
+        pb = sa.PlayblastExport(path='d:\\')
+        item.actions.add(pb)
+        item.saveToScene()
+
+    spl.plu._PlaylistUtils__iteminstances = OrderedDict()
+    spl.plu._PlaylistUtils__playlistinstances = OrderedDict()
+
+
+    pl = spl.Playlist()
+    counter = 0
+    for item in pl.getItems():
+        if counter < 3:
+            item.selected = True
+        counter += 1
+
+    pl.performActions()
 
 
 if __name__ == '__main__':

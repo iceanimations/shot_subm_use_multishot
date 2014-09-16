@@ -75,10 +75,10 @@ class Playlist(object):
                         item.__remove__()
 
     def addItem(self, item):
-        self.__addCodeToItem()
+        self.__addCodeToItem(item)
 
-    def addNewItem(self, camera, inFrame, outFrame):
-        newItem = PlaylistItem(plu.createNewAttr(camera), inFrame, outFrame)
+    def addNewItem(self, camera):
+        newItem = PlaylistItem(plu.createNewAttr(camera))
         self.addItem(newItem)
         return newItem
 
@@ -102,7 +102,6 @@ class Playlist(object):
 
 
 class PlaylistItem(object):
-    __data = {}
     def __new__(cls, attr, *args, **kwargs):
         if not isinstance(attr, pc.Attribute):
             raise TypeError, "'attr' can only be of type pymel.core.Attribute"
@@ -114,13 +113,14 @@ class PlaylistItem(object):
         return plu.__iteminstances__[attr]
 
     def __init__(self, attr, name='', inframe=None, outframe=None,
-            select=False,
+            selected=False,
             readFromScene=False,
             saveToScene=True):
         if not isinstance(name, (str, unicode)):
             raise TypeError, "'name' can only be of type str or unicode"
         self.__attr=attr
         self._camera=self.__attr.node()
+        self.__data = OrderedDict()
         if readFromScene:
             self.readFromScene()
         if name:
@@ -135,6 +135,8 @@ class PlaylistItem(object):
             self.autosetInOut()
         if not self.__data.has_key('playlistcodes'):
             self.__data['playlistcodes']=[]
+        if not self.actions:
+            self.actions = actions.ActionList(self)
         self._selected = selected
         if saveToScene: self.saveToScene()
 
@@ -150,10 +152,10 @@ class PlaylistItem(object):
     selected = property(**selected())
 
     def setName(self, name):
-        self['name']=name
+        self.__data['name']=name
     def getName(self):
-        return self['name']
-    name = property(setName)
+        return self.__data.get('name')
+    name = property(getName, setName)
 
     def setInFrame(self, inFrame):
         if not isinstance(inFrame, (int, float)):
@@ -207,7 +209,9 @@ class PlaylistItem(object):
                 raise (pc.MayaNodeError,
                         'camera %s does not exist'%self.__attr.node().name())
         datastring = json.dumps(self.__data)
+        self.__attr.set(l=False)
         self.__attr.set(datastring)
+        self.__attr.set(l=True)
 
     def readFromScene(self):
         if not self.existsInScene():
@@ -240,7 +244,7 @@ class PlaylistItem(object):
             pass
 
     def autosetInOut(self):
-        inframe, outFrame = None, None
+        inframe, outframe = None, None
         camera = self._camera
         animCurves = pc.listConnections(camera, scn=True, d=False, s=True)
         if animCurves:
@@ -262,7 +266,7 @@ class PlaylistUtils(object):
 
     @staticmethod
     def isNodeValid(node):
-        if (not isinstance(node, pc.nt.Transform()) or not
+        if (not isinstance(node, pc.nt.Transform) or not
                 node.getShapes(type='camera')):
             raise (TypeError,
                     "node must be a pc.nt.Transform of a camera shape")
@@ -284,7 +288,7 @@ class PlaylistUtils(object):
         ''' Get all ShotInfo attributes from the node '''
         if PlaylistUtils.isNodeValid(node):
             return [attr for attr in node.listAttr() if
-                    PlaylistUtils.attrPattern.match(attr)]
+                    PlaylistUtils.attrPattern.match(str(attr))]
 
     @staticmethod
     def getSmallestUnusedAttrName(node):
@@ -336,10 +340,7 @@ class PlaylistUtils(object):
         masterPlaylist = Playlist()
         playlists = [masterPlaylist, ]
         for item in masterPlaylist.getItems():
-            inframe:
-                self.inFrame = inframe
-            if outframe:
-                self.outFrame = outframecodes.update(item.__playlistcodes__)
+                codes.update(item.__playlistcodes__)
         for c in codes:
             playlists.append(Playlist(c, False))
 
