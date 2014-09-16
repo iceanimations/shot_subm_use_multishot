@@ -60,6 +60,9 @@ class Submitter(Form, Base):
         import appUsageApp
         appUsageApp.updateDatabase('shot_subm')
 
+    def showPathBox(self):
+        Path(self).show()
+        
     def toggleCollapseAll(self):
         self.collapsed = not self.collapsed
         for item in self.items:
@@ -184,12 +187,6 @@ class ShotForm(Form1, Base1):
         self.downButton.setIcon(QIcon(osp.join(icon_path, 'ic_down.png')))
         self.fillButton.setIcon(QIcon(osp.join(icon_path, 'ic_fill.png')))
 
-        # this code shall remain here until the layer UI is populated
-        self.upButton.hide()
-        self.downButton.hide()
-        self.allLayersBox.hide()
-        self.selectedLayersBox.hide()
-        self.resize(self.sizeHint())
 
 
         self.cameraBox.activated.connect(self.handleCameraBox)
@@ -432,6 +429,19 @@ class Item(Form2, Base2):
 
     def edit(self):
         self.parentWin.editItem(self.pl_item)
+        
+Form3, Base3 = uic.loadUiType(osp.join(ui_path, 'path.ui'))
+class Path(Form3, Base3):
+    def __init__(self, parent=None):
+        super(Path, self).__init__(parent)
+        self.setupUi(self)
+        self.parentWin = parent
+        
+        self.createButton.clicked.connect(self.create)
+    
+    def create(self):
+        self.parentWin.createItems(self.replaceButton.isChecked())
+        self.accept()
 
 def showMessage(parent, title = 'Shot Export',
                 msg = 'Message', btns = QMessageBox.Ok,

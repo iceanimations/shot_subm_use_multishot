@@ -23,7 +23,7 @@ def label():
 def setCurrentFrame():
     global __CURRENT_FRAME__
     __CURRENT_FRAME__ = pc.currentTime()
-    
+
 def restoreCurrentFrame():
     global __CURRENT_FRAME__
     pc.currentTime(__CURRENT_FRAME__)

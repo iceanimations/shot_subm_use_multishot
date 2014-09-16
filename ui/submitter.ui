@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>392</width>
-    <height>607</height>
+    <height>762</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -61,6 +61,16 @@
        </widget>
       </item>
       <item>
+       <widget class="QToolButton" name="createButton">
+        <property name="toolTip">
+         <string>Create items for all available cameras</string>
+        </property>
+        <property name="text">
+         <string>...</string>
+        </property>
+       </widget>
+      </item>
+      <item>
        <spacer name="horizontalSpacer_3">
         <property name="orientation">
          <enum>Qt::Horizontal</enum>
@@ -101,7 +111,7 @@ padding-bottom: 1px;</string>
          <x>0</x>
          <y>0</y>
          <width>372</width>
-         <height>512</height>
+         <height>667</height>
         </rect>
        </property>
        <layout class="QVBoxLayout" name="verticalLayout_4">
