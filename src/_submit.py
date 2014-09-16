@@ -182,6 +182,7 @@ class ShotForm(Form1, Base1):
 
         self.upButton.setIcon(QIcon(osp.join(icon_path, 'ic_up.png')))
         self.downButton.setIcon(QIcon(osp.join(icon_path, 'ic_down.png')))
+        self.fillButton.setIcon(QIcon(osp.join(icon_path, 'ic_fill.png')))
 
         # this code shall remain here until the layer UI is populated
         self.upButton.hide()
@@ -190,13 +191,15 @@ class ShotForm(Form1, Base1):
         self.selectedLayersBox.hide()
         self.resize(self.sizeHint())
 
-        self.upButton.setIcon(QIcon(osp.join(icon_path, 'ic_up.png')))
-        self.downButton.setIcon(QIcon(osp.join(icon_path, 'ic_down.png')))
 
         self.cameraBox.activated.connect(self.handleCameraBox)
         self.createButton.clicked.connect(self.create)
         self.keyFrameButton.clicked.connect(self.handleKeyFrameClick)
         self.browseButton.clicked.connect(self.browseFolder)
+        self.fillButton.clicked.connect(self.fillName)
+        
+    def fillName(self):
+        self.nameBox.setText(self.cameraBox.currentText())
 
     def browseFolder(self):
         path = self.pathBox.text()
