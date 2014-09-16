@@ -12,9 +12,11 @@ import os.path as osp
 import qtify_maya_window as qtfy
 import pymel.core as pc
 import re
+import os
 import subprocess
 import backend
 reload(backend)
+backend = backend._backend
 
 root_path = osp.dirname(osp.dirname(__file__))
 ui_path = osp.join(root_path, 'ui')
@@ -133,6 +135,9 @@ class Submitter(Form, Base):
         count = 1
         origCam = pc.lookThru(q=True)
         errors = {}
+        backend.hidePolyCount()
+        backend.showNameLabel()
+        backend.setCurrentFrame()
         for item in self.items:
             try:
                 if item.isChecked():
@@ -141,20 +146,27 @@ class Submitter(Form, Base):
                     data['end'] = item.getFrame().split()[-1]
                     data['path'] = osp.join(item.getPath(), item.getTitle())
                     pc.select(item.getCamera()); pc.lookThru(item.getCamera())
+                    backend.showDate()
+                    qApp.processEvents()
                     backend.playblast(data)
                     self.progressBar.setValue(count)
+                    backend.removeDate()
                     qApp.processEvents()
                     count += 1
             except Exception as e:
                 errors[item.getTitle()] = str(e)
         self.progressBar.hide()
         pc.lookThru(origCam)
+        backend.showPolyCount()
+        backend.removeNameLabel()
+        backend.restoreCurrentFrame()
+        temp = ' shots ' if len(errors) > 1 else ' shot '
         if errors:
             detail = ''
             for shot in errors:
                 detail += 'Shot: '+ shot +'\nReason: '+ errors[shot] +'\n\n'
-            showMessage(self, title='Error', msg=str(len(errors))+
-                        ' shot(s) was not exported successfully',
+            showMessage(self, title='Error', msg=str(len(errors))+temp+
+                        'not exported successfully',
                         icon=QMessageBox.Critical, details=detail)
         self.exportButton.setEnabled(True)
         self.closeButton.setEnabled(True)
