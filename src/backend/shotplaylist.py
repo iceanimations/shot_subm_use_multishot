@@ -32,7 +32,6 @@ class Playlist(object):
 
     def __init__(self, code='', populate=True):
         self._code = code
-        self.__items = set() #!!
         if populate: self.populate()
 
     def getCode(self):
@@ -42,8 +41,7 @@ class Playlist(object):
     def populate(self):
         attrs = plu.getSceneAttrs()
         for a in attrs:
-            item = PlaylistItem(a)
-            item.readFromScene()
+            PlaylistItem(a, readFromScene=True)
 
     def __itemBelongs(self, item):
         if not self._code or self._code in item.__playlistcodes__:
@@ -77,10 +75,10 @@ class Playlist(object):
                         item.__remove__()
 
     def addItem(self, item):
-        self.__addCodeToItem()
+        self.__addCodeToItem(item)
 
-    def addNewItem(self, camera, inFrame, outFrame):
-        newItem = PlaylistItem(plu.createNewAttr(camera), inFrame, outFrame)
+    def addNewItem(self, camera):
+        newItem = PlaylistItem(plu.createNewAttr(camera))
         self.addItem(newItem)
         return newItem
 
@@ -91,10 +89,16 @@ class Playlist(object):
             self.__removeCodeFromItem(item)
 
     def getItems(self, name=''):
+        items = []
         for item in plu.__iteminstances__.values():
             if self.__itemBelongs(item):
-                yield item
-        raise StopIteration
+                items.append( item )
+        return items
+
+    def performActions(self):
+        for item in self.getItems():
+            if item.selected:
+                item.actions.perform()
 
 
 class PlaylistItem(object):
@@ -109,23 +113,56 @@ class PlaylistItem(object):
         return plu.__iteminstances__[attr]
 
     def __init__(self, attr, name='', inframe=None, outframe=None,
-            saveToScene=True, actions=None):
+            selected=False,
+            readFromScene=False,
+            saveToScene=True):
         if not isinstance(name, (str, unicode)):
             raise TypeError, "'name' can only be of type str or unicode"
         self.__attr=attr
         self._camera=self.__attr.node()
-        data = {}
-        data['name']=name
-        data['playlistcodes']=[]
-        self.__data = data
-        self.saveToScene()
+        self.__data = OrderedDict()
+        if readFromScene:
+            self.readFromScene()
+        if name:
+            self.name = name
+        if inframe:
+            self.inFrame = inframe
+        if outframe:
+            self.outFrame = outframe
+        if not self.name:
+            self.name = self.camera.name().split('|')[-1].split(':')[-1]
+        if not self.inFrame or not self.outFrame:
+            self.autosetInOut()
+        if not self.__data.has_key('playlistcodes'):
+            self.__data['playlistcodes']=[]
+        if not self.actions:
+            self.actions = actions.ActionList(self)
+        self._selected = selected
+        if saveToScene: self.saveToScene()
+
+    def selected():
+        doc = "The selected property."
+        def fget(self):
+            return self._selected
+        def fset(self, value):
+            self._selected = value
+        def fdel(self):
+            del self._selected
+        return locals()
+    selected = property(**selected())
+
+    def setName(self, name):
+        self.__data['name']=name
+    def getName(self):
+        return self.__data.get('name')
+    name = property(getName, setName)
 
     def setInFrame(self, inFrame):
         if not isinstance(inFrame, (int, float)):
             return TypeError, "In frame must be a number"
         self.__data['inFrame'] = inFrame
     def getInFrame(self):
-        return self.__data['inFrame']
+        return self.__data.get( 'inFrame' )
     inFrame=property(getInFrame, setInFrame)
 
     def setOutFrame(self, outFrame):
@@ -133,7 +170,7 @@ class PlaylistItem(object):
             return TypeError, "Out frame must be a number"
         self.__data['outFrame'] = outFrame
     def getOutFrame(self):
-        return self.__data['outFrame']
+        return self.__data.get( 'outFrame' )
     outFrame=property(getOutFrame, setOutFrame)
 
     def getCamera(self):
@@ -172,7 +209,9 @@ class PlaylistItem(object):
                 raise (pc.MayaNodeError,
                         'camera %s does not exist'%self.__attr.node().name())
         datastring = json.dumps(self.__data)
+        self.__attr.set(l=False)
         self.__attr.set(datastring)
+        self.__attr.set(l=True)
 
     def readFromScene(self):
         if not self.existsInScene():
@@ -182,7 +221,7 @@ class PlaylistItem(object):
         self.__data=json.loads(datastring)
         if not self.__data.has_key('actions'):
             self.__data['actions']={}
-        self.__data['actions'] = actions.ActionList(self.__data['actions'])
+        self.__data['actions'] = actions.ActionList(self)
 
     def __getPlaylistCodes__(self):
         return self.__data['playlistcodes']
@@ -204,6 +243,21 @@ class PlaylistItem(object):
         except pc.MayaAttributeError:
             pass
 
+    def autosetInOut(self):
+        inframe, outframe = None, None
+        camera = self._camera
+        animCurves = pc.listConnections(camera, scn=True, d=False, s=True)
+        if animCurves:
+            frames = pc.keyframe(animCurves[0], q=True)
+            if frames:
+                inframe, outframe = frames[0], frames[-1]
+
+        if not inframe or not outframe:
+            if not self.inFrame or not self.ourFrame:
+                self.inFrame, self.outFrame = 0, 1
+        else:
+            self.inFrame, self.outFrame = inframe, outframe
+
 
 class PlaylistUtils(object):
     attrPattern = re.compile(r'.*\.ShotInfo_(\d{2})')
@@ -212,7 +266,7 @@ class PlaylistUtils(object):
 
     @staticmethod
     def isNodeValid(node):
-        if (not isinstance(node, pc.nt.Transform()) or not
+        if (not isinstance(node, pc.nt.Transform) or not
                 node.getShapes(type='camera')):
             raise (TypeError,
                     "node must be a pc.nt.Transform of a camera shape")
@@ -234,7 +288,7 @@ class PlaylistUtils(object):
         ''' Get all ShotInfo attributes from the node '''
         if PlaylistUtils.isNodeValid(node):
             return [attr for attr in node.listAttr() if
-                    PlaylistUtils.attrPattern.match(attr)]
+                    PlaylistUtils.attrPattern.match(str(attr))]
 
     @staticmethod
     def getSmallestUnusedAttrName(node):
@@ -286,7 +340,7 @@ class PlaylistUtils(object):
         masterPlaylist = Playlist()
         playlists = [masterPlaylist, ]
         for item in masterPlaylist.getItems():
-            codes.update(item.__playlistcodes__)
+                codes.update(item.__playlistcodes__)
         for c in codes:
             playlists.append(Playlist(c, False))
 
