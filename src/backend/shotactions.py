@@ -60,6 +60,7 @@ class ActionList(OrderedDict):
         classname = action.__class__.__name__
         action._item = self._item
         self[classname] = action
+        return action
 
     def remove(self, action):
         key=action
@@ -119,13 +120,23 @@ class Action(OrderedDict):
                     work.append(child)
         return subclasses
 
+    @classmethod
+    def getActionFromList(cls, actionlist, forceCreate=True):
+        if not isinstance(actionlist, ActionList):
+            raise TypeError, "Only Action lists can be added"
+        action = actionlist.get(cls.__name__)
+        if not action and forceCreate:
+            action = cls()
+        return action
+
 
 class PlayblastExport(Action):
     _conf=None
     def __init__(self, *args, **kwargs):
         super(Action, self).__init__(*args, **kwargs)
         self._conf = self.initConf()
-        #self['path']=path
+        if not self.path:
+            self.path = osp.expanduser('~')
 
     @staticmethod
     def initConf():
@@ -148,6 +159,12 @@ class PlayblastExport(Action):
         conf['playblastargs']=playblastargs
         conf['HUDs']=huds
         return conf
+
+    def getPath(self):
+        return self.get('path')
+    def setPath(self, val):
+        self['path'] = val
+    path = property(getPath, setPath)
 
     def perform(self, readconf=True):
         item = self.__item__

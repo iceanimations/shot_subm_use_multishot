@@ -1,5 +1,5 @@
 
-def test():
+def test_backend():
     import shot_subm.src.backend.shotactions as sa
     reload(sa)
 
@@ -32,3 +32,10 @@ def test():
 
     pl.performActions()
 
+
+def test_frontend():
+    pass
+
+if __name__ == '__main__':
+    test_backend()
+    test_frontend()
