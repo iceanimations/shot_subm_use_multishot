@@ -89,9 +89,9 @@ class Submitter(Form, Base):
         ShotForm(self).show()
 
     def removeItem(self, item):
-        pc.PyNode(item.getCamera()).shotInfo.delete()
         self.items.remove(item)
         item.deleteLater()
+        self._playlist.removeItem(item.pl_item)
 
     def clear(self):
         for item in self.items:
@@ -117,7 +117,7 @@ class Submitter(Form, Base):
                 data = eval(cam.shotInfo.get())
                 self.createItem(data)
         for pl_item in self._playlist.getItems():
-            self.createItem(data, pl_item)
+            self.createItem(pl_item)
 
     def editItem(self, pl_item):
         ShotForm(self, pl_item).show()
@@ -146,7 +146,7 @@ class Submitter(Form, Base):
             try:
                 if pl_item.selected:
                     qApp.processEvents()
-                    pl_item.actions.performActions()
+                    pl_item.actions.perform()
                     self.progressBar.setValue(count)
                     qApp.processEvents()
                     count += 1
@@ -204,7 +204,9 @@ class ShotForm(Form1, Base1):
         self.browseButton.clicked.connect(self.browseFolder)
 
     def browseFolder(self):
-        path = self.parentWin._previousPath
+        path = self.pathBox.text()
+        if not path:
+            path = self.parentWin._previousPath
         if not path:
             path = pc.workspace(q=1, dir=1)
         path = QFileDialog.getExistingDirectory(self, 'Select Folder',
@@ -228,16 +230,15 @@ class ShotForm(Form1, Base1):
 
     def populate(self):
         self.nameBox.setText(self.pl_item.name)
-        camera = self.pl_item.getCamera()
+        camera = self.pl_item.camera
         for index in range(self.cameraBox.count()):
             if camera == str(self.cameraBox.itemText(index)):
                 self.cameraBox.setCurrentIndex(index)
                 break
         self.startFrameBox.setValue(self.pl_item.inFrame)
         self.endFrameBox.setValue(self.pl_item.outFrame)
-        self.pathBox.setText(
-                PlayblastExport.getActionFromList(
-                    self.pl_item.actions).path)
+        playblast = PlayblastExport.getActionFromList(self.pl_item.actions)
+        self.pathBox.setText(playblast.path)
 
     def getKeyFrame(self):
         camera = pc.PyNode(str(self.cameraBox.currentText()))
@@ -270,7 +271,7 @@ class ShotForm(Form1, Base1):
         if not name:
             showMessage(self, msg='Shot name not specified')
             return
-        camera = str(self.cameraBox.currentText())
+        camera = pc.PyNode(self.cameraBox.currentText())
         if self.keyFrameButton.isChecked():
             start = self.startFrame
             end = self.endFrame
@@ -292,8 +293,9 @@ class ShotForm(Form1, Base1):
             self.pl_item.camera = camera
             self.pl_item.inFrame = start
             self.pl_item.outFrame = end
-            pb = PlayblastExport.getActionFromList(self.actions)
+            pb = PlayblastExport.getActionFromList(self.pl_item.actions)
             pb.path = path
+            self.pl_item.saveToScene()
             self.parentWin.getItem(self.pl_item, True).update()
         else: # create New
             playlist = self.parentWin.playlist
@@ -301,6 +303,9 @@ class ShotForm(Form1, Base1):
             newItem.name = name
             newItem.inFrame = start
             newItem.outFrame = end
+            pb = PlayblastExport()
+            pb.path = path
+            newItem.actions.add(pb)
             newItem.saveToScene()
             self.parentWin.createItem(newItem)
         if self.pl_item:
@@ -337,6 +342,7 @@ class Item(Form2, Base2):
         self.editButton.clicked.connect(self.edit)
         self.clicked.connect(self.parentWin.itemClicked)
         self.selectButton.clicked.connect(self.parentWin.itemClicked)
+        self.selectButton.clicked.connect(self.toggleSelected)
         self.deleteButton.clicked.connect(self.delete)
         self.browseButton.clicked.connect(self.openLocation)
         self.titleFrame.mouseReleaseEvent = self.collapse
@@ -344,11 +350,11 @@ class Item(Form2, Base2):
     def update(self):
         if self.pl_item:
             self.setTitle(self.pl_item.name)
-            self.setCamera(self.pl_item.camera)
+            self.setCamera(self.pl_item.camera.name())
             path = PlayblastExport.getActionFromList(
                     self.pl_item.actions).path
             self.setPath(path)
-            self.setFrame("%d to d"%(self.pl_item.inFrame,
+            self.setFrame("%d to %d"%(self.pl_item.inFrame,
                 self.pl_item.outFrame))
 
     def collapse(self, event=None):
@@ -368,7 +374,8 @@ class Item(Form2, Base2):
         self.collapse()
 
     def openLocation(self):
-        subprocess.call('explorer %s'%self.pl_item.path, shell=True)
+        pb = PlayblastExport.getActionFromList(self.pl_item.actions)
+        subprocess.call('explorer %s'%pb.path, shell=True)
 
     def delete(self):
         btn = showMessage(self, title='Delete Shot', msg='Are you sure, delete '
@@ -405,11 +412,16 @@ class Item(Form2, Base2):
 
     def setChecked(self, state):
         if self.pl_item:
-            self.pl_item.selected = True
+            self.pl_item.selected = state
         self.selectButton.setChecked(state)
 
     def isChecked(self):
         return self.selectButton.isChecked()
+
+    def toggleSelected(self):
+        if self.pl_item:
+            self.pl_item.selected = not self.pl_item.selected
+
 
     def toggleSelection(self):
         if self.pl_item:
@@ -421,7 +433,7 @@ class Item(Form2, Base2):
         self.clicked.emit()
 
     def edit(self):
-        self.parentWin.editItem(self)
+        self.parentWin.editItem(self.pl_item)
 
 def showMessage(parent, title = 'Shot Export',
                 msg = 'Message', btns = QMessageBox.Ok,

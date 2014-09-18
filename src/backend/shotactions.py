@@ -13,9 +13,8 @@
 
 '''
 
-from abc import ABCMeta, abstractmethod, abstractproperty
+from abc import ABCMeta, abstractmethod
 from collections import OrderedDict
-import pymel.core as pc
 import json
 import os.path as osp
 
@@ -46,13 +45,13 @@ class ActionList(OrderedDict):
         actions = [] 
         for ak in self.keys():
             if isinstance(self[ak], Action):
-                print self[ak]
                 actions.append(self[ak])
         return actions
 
     def perform(self):
         for action in self.getActions():
-            action.perform()
+            if action.enabled:
+                action.perform()
 
     def add(self, action):
         if not isinstance(action, Action):
@@ -75,8 +74,16 @@ class Action(OrderedDict):
     _conf = None
     __item__ = None
 
-    def __init__(self, item=None, *args, **kwargs):
+    def __init__(self, *args, **kwargs):
         super(Action, self).__init__(*args, **kwargs)
+        if self.enabled is None:
+            self.enabled = True
+
+    def getEnabled(self):
+        return self.get('enabled')
+    def setEnabled(self, val):
+        self['enabled'] = val
+    enabled = property(getEnabled, setEnabled)
 
     @abstractmethod
     def perform(self, item):
@@ -130,119 +137,3 @@ class Action(OrderedDict):
         return action
 
 
-class PlayblastExport(Action):
-    _conf=None
-    def __init__(self, *args, **kwargs):
-        super(Action, self).__init__(*args, **kwargs)
-        self._conf = self.initConf()
-        if not self.path:
-            self.path = osp.expanduser('~')
-
-    @staticmethod
-    def initConf():
-        conf = OrderedDict()
-        playblastargs = OrderedDict()
-        playblastargs['fo']=True
-        playblastargs['quality']=100
-        playblastargs['w']=1280
-        playblastargs['h']=720
-        playblastargs['percent']=100
-        playblastargs['compression']='MS-CRAM'
-        playblastargs['format']='avi'
-        playblastargs['sequenceTime']=0
-        playblastargs['clearCache']=True
-        playblastargs['viewer']=False
-        playblastargs['showOrnaments']=True
-        playblastargs['fp']=4
-        playblastargs['offScreen']=True
-        huds = OrderedDict()
-        conf['playblastargs']=playblastargs
-        conf['HUDs']=huds
-        return conf
-
-    def getPath(self):
-        return self.get('path')
-    def setPath(self, val):
-        self['path'] = val
-    path = property(getPath, setPath)
-
-    def perform(self, readconf=True):
-        item = self.__item__
-        try:
-            if readconf: self.read_conf()
-        except IOError:
-            self._conf = PlayblastExport.initConf()
-        # Hide layers and gather info
-        self.addHUDs()
-        pc.select(item.camera)
-        pc.lookThru(item.camera)
-        self.makePlayblast()
-        # Show layers back
-        self.removeHUDs()
-
-    def addHUDs(self):
-        conf = self._conf
-        for hud in conf.get('HUDs', []):
-            if pc.headsUpDisplay(hud, q=True, exists=True):
-                pc.headsUpDisplay(hud)
-            pc.headsUpDisplay(hud, **conf['HUDS'][hud])
-
-    def removeHUDs(self):
-        conf = self._conf
-        for hud in conf.get('HUDs', []):
-            if pc.headsUpDisplay(hud, q=True, exists=True):
-                pc.headsUpDisplay(hud, remove=True)
-
-
-    def makePlayblast(self, item=None):
-        if not item:
-            item = self.__item__
-            if not item:
-                pc.warning("Item not set: cannot make playblast")
-
-        conf = self._conf
-
-        print self['path'], type(self['path']), item.name
-        pc.playblast(st=item.getInFrame(),
-                et=item.getOutFrame(),
-                f=osp.join(self['path'], item.name),
-                **conf['playblastargs'])
-
-def test():
-    import shot_subm.src.backend.shotactions as sa
-    reload(sa)
-
-    import shot_subm.src.backend.shotplaylist as spl
-    reload(spl)
-
-    from collections import OrderedDict
-    import pymel.core as pc
-    pc.mel.eval('file -f -options "v=0;" -loadReferenceDepth "none"  -typ "mayaAscii" -o "D:/talha.ahmed/Documents/Downloads/S02EP22_SEQ03_Sh01-Sh09(7).ma";addRecentFile("D:/talha.ahmed/Documents/Downloads/S02EP22_SEQ03_Sh01-Sh09(7).ma", "mayaAscii");')
-    pl = spl.Playlist()
-    for cam in pc.ls(type='camera'):
-        pl.addNewItem(cam.firstParent())
-
-
-    for item in pl.getItems():
-        pb = sa.PlayblastExport(path='d:\\')
-        item.actions.add(pb)
-        item.saveToScene()
-
-    spl.plu._PlaylistUtils__iteminstances = OrderedDict()
-    spl.plu._PlaylistUtils__playlistinstances = OrderedDict()
-
-
-    pl = spl.Playlist()
-    counter = 0
-    for item in pl.getItems():
-        if counter < 3:
-            item.selected = True
-        counter += 1
-
-    pl.performActions()
-
-
-if __name__ == '__main__':
-    al = ActionList()
-    al.add(PlayblastExport())
-    print json.dumps(al)
