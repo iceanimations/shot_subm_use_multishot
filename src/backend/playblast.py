@@ -57,6 +57,8 @@ def showNameLabel():
 
 def showDate():
     global __HUD_DATE__
+    if (pc.headsUpDisplay(__HUD_DATE__, q=True, exists=True)):
+        pc.headsUpDisplay(__HUD_DATE__, remove=True) 
     pc.headsUpDisplay(__HUD_DATE__, section=1, block=0, blockSize="large", dfs="large",
                       command="pc.date(format=\"DD/MM/YYYY hh:mm\")")
 
