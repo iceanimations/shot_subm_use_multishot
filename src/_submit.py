@@ -111,11 +111,6 @@ class Submitter(Form, Base):
         return thisItem
 
     def populate(self):
-        for cam in [x.firstParent() for x in pc.ls(type='camera')
-                    if x.orthographic.get() == False]:
-            if pc.attributeQuery('shotInfo', node=cam, exists=True):
-                data = eval(cam.shotInfo.get())
-                self.createItem(data)
         for pl_item in self._playlist.getItems():
             self.createItem(pl_item)
 
