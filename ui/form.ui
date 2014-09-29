@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>331</width>
-    <height>174</height>
+    <height>199</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -39,6 +39,13 @@
     <layout class="QHBoxLayout" name="horizontalLayout_5">
      <item>
       <layout class="QVBoxLayout" name="verticalLayout">
+       <item>
+        <widget class="QCheckBox" name="autoCreateButton">
+         <property name="text">
+          <string>Auto Create</string>
+         </property>
+        </widget>
+       </item>
        <item>
         <layout class="QHBoxLayout" name="horizontalLayout_2">
          <item>
@@ -280,8 +287,8 @@
    <slot>setDisabled(bool)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>54</x>
-     <y>95</y>
+     <x>65</x>
+     <y>112</y>
     </hint>
     <hint type="destinationlabel">
      <x>193</x>
@@ -296,8 +303,8 @@
    <slot>setDisabled(bool)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>62</x>
-     <y>95</y>
+     <x>73</x>
+     <y>112</y>
     </hint>
     <hint type="destinationlabel">
      <x>99</x>
@@ -312,8 +319,8 @@
    <slot>deleteLater()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>288</x>
-     <y>54</y>
+     <x>319</x>
+     <y>85</y>
     </hint>
     <hint type="destinationlabel">
      <x>288</x>
@@ -328,12 +335,76 @@
    <slot>reject()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>265</x>
-     <y>53</y>
+     <x>319</x>
+     <y>85</y>
     </hint>
     <hint type="destinationlabel">
      <x>237</x>
      <y>78</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>autoCreateButton</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>nameBox</receiver>
+   <slot>setDisabled(bool)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>49</x>
+     <y>14</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>87</x>
+     <y>41</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>autoCreateButton</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>fillButton</receiver>
+   <slot>setDisabled(bool)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>33</x>
+     <y>17</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>200</x>
+     <y>38</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>autoCreateButton</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>keyFrameButton</receiver>
+   <slot>setChecked(bool)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>21</x>
+     <y>17</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>28</x>
+     <y>103</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>autoCreateButton</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>keyFrameButton</receiver>
+   <slot>setDisabled(bool)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>15</x>
+     <y>19</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>19</x>
+     <y>107</y>
     </hint>
    </hints>
   </connection>

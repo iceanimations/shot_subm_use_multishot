@@ -14,6 +14,7 @@ import pymel.core as pc
 import re
 import subprocess
 import backend
+import appUsageApp
 reload(backend)
 
 Playlist = backend.Playlist
@@ -57,7 +58,6 @@ class Submitter(Form, Base):
         self.items = []
         self.populate()
 
-        import appUsageApp
         appUsageApp.updateDatabase('shot_subm')
 
     def showPathBox(self):
@@ -183,8 +183,6 @@ class ShotForm(Form1, Base1):
         self.startFrame = None
         self.endFrame = None
 
-        self.upButton.setIcon(QIcon(osp.join(icon_path, 'ic_up.png')))
-        self.downButton.setIcon(QIcon(osp.join(icon_path, 'ic_down.png')))
         self.fillButton.setIcon(QIcon(osp.join(icon_path, 'ic_fill.png')))
 
 
@@ -430,18 +428,6 @@ class Item(Form2, Base2):
     def edit(self):
         self.parentWin.editItem(self.pl_item)
         
-Form3, Base3 = uic.loadUiType(osp.join(ui_path, 'path.ui'))
-class Path(Form3, Base3):
-    def __init__(self, parent=None):
-        super(Path, self).__init__(parent)
-        self.setupUi(self)
-        self.parentWin = parent
-        
-        self.createButton.clicked.connect(self.create)
-    
-    def create(self):
-        self.parentWin.createItems(self.replaceButton.isChecked())
-        self.accept()
 
 def showMessage(parent, title = 'Shot Export',
                 msg = 'Message', btns = QMessageBox.Ok,
