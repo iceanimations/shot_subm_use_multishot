@@ -111,7 +111,7 @@ class PlayblastExport(Action):
             if readconf: self.read_conf()
         except IOError:
             self._conf = PlayblastExport.initConf()
-        # Hide layers
+        # TODO: Hide layers
         origCam = pc.lookThru(q=True)
         pc.select(item.camera)
         pc.lookThru(item.camera)
@@ -119,7 +119,7 @@ class PlayblastExport(Action):
         showDate()
         showNameLabel()
         recordCurrentFrame()
-        #self.addHUDs()
+        # TODO: self.addHUDs()
 
         self.makePlayblast()
 
@@ -130,6 +130,10 @@ class PlayblastExport(Action):
         restoreCurrentFrame()
         # Show layers back
         #self.removeHUDs()
+    
+    def addLayerInfo(self, layer, ReferenceState, VisibleState):
+        self['layerInfo'] = OrderedDict()
+        self['layerInfo'][layer] = {'Ref': ReferenceState, 'Vis': VisibleState}
 
     def getPath(self):
         return self.get('path')
@@ -139,7 +143,7 @@ class PlayblastExport(Action):
 
     def addHUDs(self):
         conf = self._conf
-        for hud in conf.get('HUDs', []):
+        for hud in conf.get('HUDs', {}):
             if pc.headsUpDisplay(hud, q=True, exists=True):
                 pc.headsUpDisplay(hud, remove=True)
             pc.headsUpDisplay(hud, **conf['HUDS'][hud])

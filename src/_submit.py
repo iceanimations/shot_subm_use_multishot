@@ -38,6 +38,7 @@ class Submitter(Form, Base):
         self.addButton.setIcon(QIcon(osp.join(icon_path, 'ic_add.png')))
         self.collapseButton.setIcon(QIcon(osp.join(icon_path,
                                                    'ic_toggle_collapse')))
+        self.deleteSelectedButton.setIcon(QIcon(osp.join(icon_path, 'ic_delete.png')))
         search_ic_path = osp.join(icon_path, 'ic_search.png').replace('\\','/')
         style_sheet = ('\nbackground-image: url(%s);'+
                        '\nbackground-repeat: no-repeat;'+
@@ -48,6 +49,7 @@ class Submitter(Form, Base):
         self.collapseButton.clicked.connect(self.toggleCollapseAll)
         self.addButton.clicked.connect(self.showForm)
         self.selectAllButton.clicked.connect(self.selectAll)
+        self.deleteSelectedButton.clicked.connect(self.deleteSelected)
         self.searchBox.textChanged.connect(self.searchShots)
         self.searchBox.returnPressed.connect(lambda: self.searchShots
                                              (str(self.searchBox.text())))
@@ -59,9 +61,16 @@ class Submitter(Form, Base):
         self.populate()
 
         appUsageApp.updateDatabase('shot_subm')
-
-    def showPathBox(self):
-        Path(self).show()
+        
+    def setSelectedCount(self):
+        count = 0
+        for item in self.items:
+            if item.isChecked():
+                count += 1
+        self.selectedLabel.setText('Selected: '+ str(count))
+    
+    def setTotalCount(self):
+        self.totalLabel.setText('Total: '+ str(len(self.items)))
         
     def toggleCollapseAll(self):
         self.collapsed = not self.collapsed
@@ -79,6 +88,38 @@ class Submitter(Form, Base):
     def selectAll(self):
         for item in self.items:
             item.setChecked(self.selectAllButton.isChecked())
+        self.setSelectedCount()
+            
+    def deleteSelected(self):
+        flag = False
+        for i in self.items:
+            if i.isChecked():
+                flag = True
+                break
+        if not flag:
+            msg = 'Shots not selected'
+            icon = QMessageBox.Information
+            btns = QMessageBox.Ok
+        else:
+            msg = 'Are you sure, remove selected shots?'
+            icon = QMessageBox.Question
+            btns = QMessageBox.Yes|QMessageBox.Cancel
+
+        btn = showMessage(self, title="Remove Selected",
+                          msg=msg,
+                          btns=btns,
+                          icon=icon)
+        if btn == QMessageBox.Yes:
+            temp = []
+            for item in self.items:
+                if item.isChecked():
+                    item.deleteLater()
+                    self._playlist.removeItem(item.pl_item)
+                    temp.append(item)
+            for itm in temp:
+                self.items.remove(itm)
+        self.setSelectedCount()
+        self.setTotalCount()
 
     def itemClicked(self):
         flag = True
@@ -87,6 +128,7 @@ class Submitter(Form, Base):
                 flag = False
                 break
         self.selectAllButton.setChecked(flag)
+        self.setSelectedCount()
 
     def showForm(self):
         ShotForm(self).show()
@@ -95,11 +137,16 @@ class Submitter(Form, Base):
         self.items.remove(item)
         item.deleteLater()
         self._playlist.removeItem(item.pl_item)
+        self.setSelectedCount()
+        self.setTotalCount()
 
     def clear(self):
         for item in self.items:
             item.deleteLater()
+            self._playlist.removeItem(item.pl_item)
         del self.items[:]
+        self.setSelectedCount()
+        self.setTotalCount()
 
     def getItems(self):
         return self.items
@@ -127,6 +174,8 @@ class Submitter(Form, Base):
         item.setChecked(self.selectAllButton.isChecked())
         item.toggleCollapse(self.collapsed)
         item.update()
+        self.setSelectedCount()
+        self.setTotalCount()
         return item
 
     def export(self):
@@ -175,6 +224,7 @@ class ShotForm(Form1, Base1):
         super(ShotForm, self).__init__(parent)
         self.setupUi(self)
         self.parentWin = parent
+        self.progressBar.hide()
         self.addCameras()
         self.pl_item = pl_item
         if self.pl_item:
@@ -189,7 +239,7 @@ class ShotForm(Form1, Base1):
 
 
         self.cameraBox.activated.connect(self.handleCameraBox)
-        self.createButton.clicked.connect(self.create)
+        self.createButton.clicked.connect(self.callCreate)
         self.keyFrameButton.clicked.connect(self.handleKeyFrameClick)
         self.browseButton.clicked.connect(self.browseFolder)
         self.fillButton.clicked.connect(self.fillName)
@@ -218,9 +268,11 @@ class ShotForm(Form1, Base1):
 
     def addCameras(self):
         cams = pc.ls(type='camera')
-        self.cameraBox.addItems([cam.firstParent().name() for cam in cams
-                                if cam.orthographic.get() == False])
+        names = [cam.firstParent().name() for cam in cams
+                 if cam.orthographic.get() == False]
+        self.cameraBox.addItems(names)
         self.cameraBox.view().setFixedWidth(self.cameraBox.sizeHint().width())
+        self.camCountLabel.setText(str(len(names)))
 
     def populate(self):
         self.nameBox.setText(self.pl_item.name)
@@ -234,20 +286,21 @@ class ShotForm(Form1, Base1):
         playblast = PlayblastExport.getActionFromList(self.pl_item.actions)
         self.pathBox.setText(playblast.path)
 
-    def getKeyFrame(self):
-        camera = pc.PyNode(str(self.cameraBox.currentText()))
+    def getKeyFrame(self, camera=None):
+        if camera == None:
+            camera = pc.PyNode(str(self.cameraBox.currentText()))
         animCurves = pc.listConnections(camera, scn=True,
                                         d=False, s=True)
         if not animCurves:
             showMessage(self,
-                        msg='No in out found on the selected camera',
+                        msg='No in out found on \"'+camera.name()+"\"",
                         icon=QMessageBox.Warning)
             self.keyFrameButton.setChecked(False)
             return 0, 1
 
         frames = pc.keyframe(animCurves[0], q=True)
         if not frames:
-            showMessage(self, msg='No in out found on the selected camera',
+            showMessage(self, msg='No in out found on \"'+camera.name()+"\"",
                         icon=QMessageBox.Warning)
             self.keyFrameButton.setChecked(False)
             return 0, 1
@@ -259,19 +312,8 @@ class ShotForm(Form1, Base1):
             self.startFrame, self.endFrame = self.getKeyFrame()
             self.startFrameBox.setValue(self.startFrame)
             self.endFrameBox.setValue(self.endFrame)
-
-    def create(self):
-        name = str(self.nameBox.text())
-        if not name:
-            showMessage(self, msg='Shot name not specified')
-            return
-        camera = pc.PyNode(self.cameraBox.currentText())
-        if self.keyFrameButton.isChecked():
-            start = self.startFrame
-            end = self.endFrame
-        else:
-            start = self.startFrameBox.value()
-            end = self.endFrameBox.value()
+            
+    def callCreate(self):
         path = str(self.pathBox.text())
         if not path:
             showMessage(self,
@@ -281,7 +323,39 @@ class ShotForm(Form1, Base1):
             showMessage(self, title='Error', msg='The system can not find '+
                         'the path specified', icon=QMessageBox.Information)
             return
+        if self.autoCreateButton.isChecked():
+            self.createAll(path)
+        else:
+            name = str(self.nameBox.text())
+            if not name:
+                showMessage(self, msg='Shot name not specified')
+                return
+            camera = pc.PyNode(str(self.cameraBox.currentText()))
+            if self.keyFrameButton.isChecked():
+                start = self.startFrame
+                end = self.endFrame
+            else:
+                start = self.startFrameBox.value()
+                end = self.endFrameBox.value()
+            self.create(name, camera, start, end, path)
+        
+    def createAll(self, path):
+        _max = self.cameraBox.count()
+        self.progressBar.setMaximum(_max)
+        self.progressBar.show()
+        for i in range(_max):
+            name = str(self.cameraBox.itemText(i))
+            cam = pc.PyNode(name)
+            start, end = self.getKeyFrame(cam)
+            self.create(name, cam, start, end, path)
+            self.progressBar.setValue(i+1)
+            qApp.processEvents()
+        self.progressBar.hide()
+        self.progressBar.setValue(0)
+        self.accept()
+            
 
+    def create(self, name, camera, start, end, path):
         if self.pl_item: #update
             self.pl_item.name = name
             self.pl_item.camera = camera
@@ -293,16 +367,17 @@ class ShotForm(Form1, Base1):
             self.parentWin.getItem(self.pl_item, True).update()
             self.accept()
         else: # create New
-            playlist = self.parentWin.playlist
-            newItem = playlist.addNewItem(camera)
-            newItem.name = name
-            newItem.inFrame = start
-            newItem.outFrame = end
-            pb = PlayblastExport()
-            pb.path = path
-            newItem.actions.add(pb)
-            newItem.saveToScene()
-            self.parentWin.createItem(newItem)
+            if not backend.PlayListUtils.getAttrs(camera):
+                playlist = self.parentWin.playlist
+                newItem = playlist.addNewItem(camera)
+                newItem.name = name
+                newItem.inFrame = start
+                newItem.outFrame = end
+                pb = PlayblastExport()
+                pb.path = path
+                newItem.actions.add(pb)
+                newItem.saveToScene()
+                self.parentWin.createItem(newItem)
 
     def closeEvent(self, event):
         self.deleteLater()
