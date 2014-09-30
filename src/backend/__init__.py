@@ -12,3 +12,4 @@ reload(playblast)
 
 Playlist = shotplaylist.Playlist
 PlayblastExport = playblast.PlayblastExport
+PlayListUtils = shotplaylist.PlaylistUtils

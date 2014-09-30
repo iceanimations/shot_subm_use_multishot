@@ -239,6 +239,7 @@ class PlaylistItem(object):
         except KeyError:
             pass
         try:
+            self.__attr.set(l=False)
             self.__attr.delete() # del attributes on refs and locked nodes?
         except pc.MayaAttributeError:
             pass

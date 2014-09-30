@@ -180,6 +180,7 @@ class ShotForm(Form1, Base1):
         if self.pl_item:
             self.createButton.setText('Ok')
             self.populate()
+            self.autoCreateButton.hide()
         self.startFrame = None
         self.endFrame = None
 
@@ -290,6 +291,7 @@ class ShotForm(Form1, Base1):
             pb.path = path
             self.pl_item.saveToScene()
             self.parentWin.getItem(self.pl_item, True).update()
+            self.accept()
         else: # create New
             playlist = self.parentWin.playlist
             newItem = playlist.addNewItem(camera)
@@ -301,8 +303,6 @@ class ShotForm(Form1, Base1):
             newItem.actions.add(pb)
             newItem.saveToScene()
             self.parentWin.createItem(newItem)
-        if self.pl_item:
-            self.accept()
 
     def closeEvent(self, event):
         self.deleteLater()
