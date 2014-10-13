@@ -6,7 +6,7 @@ Created on Sep 1, 2014
 import site
 site.addsitedir(r'R:\Pipe_Repo\Users\Qurban\utilities')
 from uiContainer import uic
-from PyQt4.QtGui import QIcon, QMessageBox, QFileDialog, qApp
+from PyQt4.QtGui import QIcon, QMessageBox, QFileDialog, qApp, QCheckBox
 from PyQt4 import QtCore
 import os.path as osp
 import qtify_maya_window as qtfy
@@ -19,6 +19,7 @@ reload(backend)
 
 Playlist = backend.Playlist
 PlayblastExport = backend.PlayblastExport
+PlayListUtils = backend.PlayListUtils
 
 root_path = osp.dirname(osp.dirname(__file__))
 ui_path = osp.join(root_path, 'ui')
@@ -71,7 +72,7 @@ class Submitter(Form, Base):
     
     def setTotalCount(self):
         self.totalLabel.setText('Total: '+ str(len(self.items)))
-        
+
     def toggleCollapseAll(self):
         self.collapsed = not self.collapsed
         for item in self.items:
@@ -185,6 +186,7 @@ class Submitter(Form, Base):
         self.progressBar.setMinimum(0)
         self.progressBar.setMaximum(len([i for i in self.items
                                          if i.isChecked()]))
+        state = PlayListUtils.getDisplayLayersState()
         errors = {}
         self.progressBar.setValue(0)
         qApp.processEvents()
@@ -208,6 +210,7 @@ class Submitter(Form, Base):
             showMessage(self, title='Error', msg=str(len(errors))+temp+
                         'not exported successfully',
                         icon=QMessageBox.Critical, details=detail)
+        PlayListUtils.restoreDisplayLayersState(state)
         self.exportButton.setEnabled(True)
         self.closeButton.setEnabled(True)
 
@@ -227,6 +230,8 @@ class ShotForm(Form1, Base1):
         self.progressBar.hide()
         self.addCameras()
         self.pl_item = pl_item
+        self.layerButtons = []
+        self.addLayers()
         if self.pl_item:
             self.createButton.setText('Ok')
             self.populate()
@@ -243,6 +248,13 @@ class ShotForm(Form1, Base1):
         self.keyFrameButton.clicked.connect(self.handleKeyFrameClick)
         self.browseButton.clicked.connect(self.browseFolder)
         self.fillButton.clicked.connect(self.fillName)
+        
+    def addLayers(self):
+        for layer in PlayListUtils.getDisplayLayers():
+            btn = QCheckBox(layer.name(), self)
+            btn.setChecked(layer.visibility.get())
+            self.layerLayout.addWidget(btn)
+            self.layerButtons.append(btn)
         
     def fillName(self):
         self.nameBox.setText(self.cameraBox.currentText())
@@ -284,7 +296,16 @@ class ShotForm(Form1, Base1):
         self.startFrameBox.setValue(self.pl_item.inFrame)
         self.endFrameBox.setValue(self.pl_item.outFrame)
         playblast = PlayblastExport.getActionFromList(self.pl_item.actions)
+        for btn in self.layerButtons:
+            temp = str(btn.text())
+            if temp in playblast.get('layers'):
+                btn.setChecked(True)
+            else: btn.setChecked(False)
         self.pathBox.setText(playblast.path)
+        for layer in self.layerButtons:
+            if str(layer.text()) in playblast.getLayers():
+                layer.setChecked(True)
+            else: layer.setChecked(False)
 
     def getKeyFrame(self, camera=None):
         if camera == None:
@@ -338,6 +359,10 @@ class ShotForm(Form1, Base1):
                 start = self.startFrameBox.value()
                 end = self.endFrameBox.value()
             self.create(name, camera, start, end, path)
+            
+    def getSelectedLayers(self):
+        return [str(layer.text()) for layer in self.layerButtons
+                if layer.isChecked()]
         
     def createAll(self, path):
         _max = self.cameraBox.count()
@@ -353,7 +378,7 @@ class ShotForm(Form1, Base1):
         self.progressBar.hide()
         self.progressBar.setValue(0)
         self.accept()
-            
+
 
     def create(self, name, camera, start, end, path):
         if self.pl_item: #update
@@ -363,17 +388,19 @@ class ShotForm(Form1, Base1):
             self.pl_item.outFrame = end
             pb = PlayblastExport.getActionFromList(self.pl_item.actions)
             pb.path = path
+            pb.addLayers(self.getSelectedLayers())
             self.pl_item.saveToScene()
             self.parentWin.getItem(self.pl_item, True).update()
             self.accept()
         else: # create New
-            if not backend.PlayListUtils.getAttrs(camera):
+            if not PlayListUtils.getAttrs(camera):
                 playlist = self.parentWin.playlist
                 newItem = playlist.addNewItem(camera)
                 newItem.name = name
                 newItem.inFrame = start
                 newItem.outFrame = end
                 pb = PlayblastExport()
+                pb.addLayers(self.getSelectedLayers())
                 pb.path = path
                 newItem.actions.add(pb)
                 newItem.saveToScene()

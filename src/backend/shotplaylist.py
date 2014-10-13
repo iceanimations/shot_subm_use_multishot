@@ -17,6 +17,7 @@ import pymel.core as pc
 import re
 import json
 from collections import OrderedDict
+from test.test_funcattrs import StaticMethodAttrsTest
 
 
 class Playlist(object):
@@ -130,6 +131,7 @@ class PlaylistItem(object):
         if outframe:
             self.outFrame = outframe
         if not self.name:
+            #TODO: discuss splitting with talha
             self.name = self.camera.name().split('|')[-1].split(':')[-1]
         if not self.inFrame or not self.outFrame:
             self.autosetInOut()
@@ -304,7 +306,7 @@ class PlaylistUtils(object):
     def createNewAttr(node):
         ''' :type node: pymel.core.nodetypes.Transform() '''
         attrName = PlaylistUtils.getSmallestUnusedAttrName(node)
-        pc.addAttr(node, ln=attrName, dt="string")
+        pc.addAttr(node, ln=attrName, dt="string", h=True)
         attr = node.attr(attrName)
         attr.setLocked(True)
         return attr
@@ -344,6 +346,22 @@ class PlaylistUtils(object):
                 codes.update(item.__playlistcodes__)
         for c in codes:
             playlists.append(Playlist(c, False))
-
+            
+    @staticmethod
+    def getDisplayLayers():
+        return [pc.PyNode(layer) for layer in pc.layout('LayerEditorDisplayLayerLayout',
+                         q=True, childArray=True)]
+        
+    @staticmethod
+    def getDisplayLayersState():
+        state = {}
+        for layer in PlaylistUtils.getDisplayLayers():
+            state[layer] = layer.visibility.get()
+        return state
+    
+    @staticmethod
+    def restoreDisplayLayersState(state):
+        for layer, visibility in state.items():
+            layer.visibility.set(visibility)
 
 plu = PlaylistUtils

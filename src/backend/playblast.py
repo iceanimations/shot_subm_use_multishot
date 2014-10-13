@@ -1,4 +1,6 @@
 import shotactions
+import shotplaylist
+PlayListUtils = shotplaylist.PlaylistUtils
 Action = shotactions.Action
 from collections import OrderedDict
 import pymel.core as pc
@@ -80,6 +82,8 @@ class PlayblastExport(Action):
     def __init__(self, *args, **kwargs):
         super(PlayblastExport, self).__init__(*args, **kwargs)
         self._conf = self.initConf()
+        if not self.get('layers'):
+            self['layers'] = []
         if not self.path:
             self.path = osp.expanduser('~')
 
@@ -106,12 +110,17 @@ class PlayblastExport(Action):
         return conf
 
     def perform(self, readconf=True):
+        for layer in PlayListUtils.getDisplayLayers():
+            if layer.name() in self.getLayers():
+                layer.visibility.set(1)
+            else: layer.visibility.set(0)
         item = self.__item__
         try:
             if readconf: self.read_conf()
         except IOError:
             self._conf = PlayblastExport.initConf()
-        # TODO: Hide layers
+        # Hide layers
+        
         origCam = pc.lookThru(q=True)
         pc.select(item.camera)
         pc.lookThru(item.camera)
@@ -130,10 +139,12 @@ class PlayblastExport(Action):
         restoreCurrentFrame()
         # Show layers back
         #self.removeHUDs()
+        
+    def addLayers(self, layers):
+        self['layers'][:] = layers
     
-    def addLayerInfo(self, layer, ReferenceState, VisibleState):
-        self['layerInfo'] = OrderedDict()
-        self['layerInfo'][layer] = {'Ref': ReferenceState, 'Vis': VisibleState}
+    def getLayers(self):
+        return self.get('layers', [])
 
     def getPath(self):
         return self.get('path')

@@ -86,7 +86,7 @@ class Action(OrderedDict):
     enabled = property(getEnabled, setEnabled)
 
     @abstractmethod
-    def perform(self, item):
+    def perform(self):
         pass
 
     def _item():
@@ -126,6 +126,25 @@ class Action(OrderedDict):
                     subclasses[scname] = child
                     work.append(child)
         return subclasses
+    
+    @classmethod
+    def performOnPlaylist(cls, pl):
+        for item in pl.get_items():
+            action = cls.getActionsFromList(item.actions)
+            if action and action.enabled:
+                cls.getActionsFromList(item.actions).perform()
+                yield True
+            else:
+                yield False
+        
+    @classmethod
+    def getNumActionsFromPlaylist(cls, pl):
+        num = 0
+        for item in pl.get_items():
+            action = cls.getActionFromList(item.actions)
+            if action and action.enabled:
+                num+=1
+        return num
 
     @classmethod
     def getActionFromList(cls, actionlist, forceCreate=True):
@@ -135,5 +154,4 @@ class Action(OrderedDict):
         if not action and forceCreate:
             action = cls()
         return action
-
 
