@@ -524,7 +524,7 @@ class Item(Form2, Base2):
         self.label.mouseDoubleClickEvent = lambda event: self.openLocation()
         self.label_2.mouseDoubleClickEvent = lambda event: self.openLocation2()
         self.playblastPathLabel.mouseDoubleClickEvent = lambda event: self.openLocation()
-        self.cachePathLabel.mouseDoubleClickEvent = lambda event: self.openLocation()
+        self.cachePathLabel.mouseDoubleClickEvent = lambda event: self.openLocation2()
 
     def update(self):
         if self.pl_item:
