@@ -50,8 +50,8 @@ class ActionList(OrderedDict):
 
     def perform(self):
         for action in self.getActions():
-            if action.enabled:
-                action.perform()
+            print 'action:', action
+            action.perform()
 
     def add(self, action):
         if not isinstance(action, Action):
