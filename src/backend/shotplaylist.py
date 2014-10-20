@@ -17,7 +17,6 @@ import pymel.core as pc
 import re
 import json
 from collections import OrderedDict
-from test.test_funcattrs import StaticMethodAttrsTest
 
 
 class Playlist(object):
@@ -269,7 +268,7 @@ class PlaylistUtils(object):
 
     @staticmethod
     def isNodeValid(node):
-        if (not isinstance(node, pc.nt.Transform) or not
+        if (type(node)!=pc.nt.Transform or not
                 node.getShapes(type='camera')):
             raise (TypeError,
                     "node must be a pc.nt.Transform of a camera shape")
@@ -283,6 +282,8 @@ class PlaylistUtils(object):
         for camera in pc.ls(type='camera'):
             nodes = camera.getAllParents()
             for node in nodes:
+                if type(node) != pc.nt.Transform:
+                    continue
                 attrs.extend(PlaylistUtils.getAttrs(node))
         return attrs
 
