@@ -130,7 +130,6 @@ class PlaylistItem(object):
         if outframe:
             self.outFrame = outframe
         if not self.name:
-            #TODO: discuss splitting with talha
             self.name = self.camera.name().split('|')[-1].split(':')[-1]
         if not self.inFrame or not self.outFrame:
             self.autosetInOut()
@@ -350,8 +349,12 @@ class PlaylistUtils(object):
             
     @staticmethod
     def getDisplayLayers():
-        return [pc.PyNode(layer) for layer in pc.layout('LayerEditorDisplayLayerLayout',
-                         q=True, childArray=True)]
+        try:
+            return [pc.PyNode(layer) for layer in pc.layout('LayerEditorDisplayLayerLayout',
+                             q=True, childArray=True)]
+        except TypeError:
+            pc.warning('Display layers not found in the scene')
+            return []
         
     @staticmethod
     def getDisplayLayersState():

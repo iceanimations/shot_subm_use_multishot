@@ -380,10 +380,10 @@ class ShotForm(Form1, Base1):
                 showMessage(self, title='Error', msg='Playblast path does not '+
                             'exist', icon=QMessageBox.Information)
                 return
-            if not [layer for layer in self.layerButtons if layer.isChecked()]:
-                showMessage(self, title='Shot Export', msg='No layer enabled, enable'+
-                            ' at least one')
-                return
+#             if not [layer for layer in self.layerButtons if layer.isChecked()]:
+#                 showMessage(self, title='Shot Export', msg='No layer enabled, enable'+
+#                             ' at least one')
+#                 return
         if self.cacheEnableButton.isChecked():
             if not cachePath:
                 showMessage(self,
