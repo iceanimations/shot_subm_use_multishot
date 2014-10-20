@@ -516,7 +516,15 @@ class Item(Form2, Base2):
         self.selectButton.clicked.connect(self.toggleSelected)
         self.deleteButton.clicked.connect(self.delete)
         self.browseButton.clicked.connect(self.openLocation)
+        self.browseButton2.clicked.connect(self.openLocation2)
         self.titleFrame.mouseReleaseEvent = self.collapse
+        self.browseButton.hide()
+        self.browseButton2.hide()
+        
+        self.label.mouseDoubleClickEvent = lambda event: self.openLocation()
+        self.label_2.mouseDoubleClickEvent = lambda event: self.openLocation2()
+        self.playblastPathLabel.mouseDoubleClickEvent = lambda event: self.openLocation()
+        self.cachePathLabel.mouseDoubleClickEvent = lambda event: self.openLocation()
 
     def update(self):
         if self.pl_item:
@@ -549,6 +557,10 @@ class Item(Form2, Base2):
     def openLocation(self):
         pb = PlayblastExport.getActionFromList(self.pl_item.actions)
         subprocess.call('explorer %s'%pb.path, shell=True)
+        
+    def openLocation2(self):
+        ce = CacheExport.getActionFromList(self.pl_item.actions)
+        subprocess.call('explorer %s'%ce.path, shell=True)
 
     def delete(self):
         btn = showMessage(self, title='Delete Shot', msg='Are you sure, delete '
