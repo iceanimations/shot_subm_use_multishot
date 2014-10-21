@@ -277,7 +277,7 @@ class ShotForm(Form1, Base1):
             self.objectButtons.append(btn)
 
     def fillName(self):
-        self.nameBox.setText(self.cameraBox.currentText())
+        self.nameBox.setText(self.cameraBox.currentText().replace(':', '_').replace('|', '_'))
         
     def cacheBrowseFolder(self):
         path = self.browseFolder()
@@ -557,7 +557,7 @@ class Item(Form2, Base2):
     def openLocation(self):
         pb = PlayblastExport.getActionFromList(self.pl_item.actions)
         subprocess.call('explorer %s'%pb.path, shell=True)
-        
+
     def openLocation2(self):
         ce = CacheExport.getActionFromList(self.pl_item.actions)
         subprocess.call('explorer %s'%ce.path, shell=True)
@@ -625,7 +625,7 @@ class Item(Form2, Base2):
 
     def edit(self):
         self.parentWin.editItem(self.pl_item)
-        
+
 
 def showMessage(parent, title = 'Shot Export',
                 msg = 'Message', btns = QMessageBox.Ok,

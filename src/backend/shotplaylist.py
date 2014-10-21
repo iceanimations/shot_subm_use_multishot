@@ -209,9 +209,9 @@ class PlaylistItem(object):
                 raise (pc.MayaNodeError,
                         'camera %s does not exist'%self.__attr.node().name())
         datastring = json.dumps(self.__data)
-        self.__attr.set(l=False)
+        #self.__attr.set(l=False)
         self.__attr.set(datastring)
-        self.__attr.set(l=True)
+        #self.__attr.set(l=True)
 
     def readFromScene(self):
         if not self.existsInScene():
@@ -239,7 +239,7 @@ class PlaylistItem(object):
         except KeyError:
             pass
         try:
-            self.__attr.set(l=False)
+            #self.__attr.set(l=False)
             self.__attr.delete() # del attributes on refs and locked nodes?
         except pc.MayaAttributeError:
             pass
@@ -269,6 +269,7 @@ class PlaylistUtils(object):
     def isNodeValid(node):
         if (type(node)!=pc.nt.Transform or not
                 node.getShapes(type='camera')):
+            print node
             raise (TypeError,
                     "node must be a pc.nt.Transform of a camera shape")
         return True
@@ -277,12 +278,9 @@ class PlaylistUtils(object):
     def getSceneAttrs():
         ''' Get all shotInfo attributes in the Scene (or current namespace)'''
         attrs = []
-        nodes = []
         for camera in pc.ls(type='camera'):
-            nodes = camera.getAllParents()
-            for node in nodes:
-                if type(node) != pc.nt.Transform:
-                    continue
+            node = camera.firstParent()
+            if type(node) == pc.nt.Transform:
                 attrs.extend(PlaylistUtils.getAttrs(node))
         return attrs
 
@@ -308,7 +306,7 @@ class PlaylistUtils(object):
         attrName = PlaylistUtils.getSmallestUnusedAttrName(node)
         pc.addAttr(node, ln=attrName, dt="string", h=True)
         attr = node.attr(attrName)
-        attr.setLocked(True)
+        #attr.setLocked(True)
         return attr
 
     @staticmethod
