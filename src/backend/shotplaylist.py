@@ -41,7 +41,7 @@ class Playlist(object):
     def populate(self):
         attrs = plu.getSceneAttrs()
         for a in attrs:
-            PlaylistItem(a, readFromScene=True)
+            PlaylistItem(a, readFromScene=True, saveToScene=False)
 
     def __itemBelongs(self, item):
         if not self._code or self._code in item.__playlistcodes__:
@@ -287,9 +287,15 @@ class PlaylistUtils(object):
     @staticmethod
     def getAttrs(node):
         ''' Get all ShotInfo attributes from the node '''
+        attrs = []
         if PlaylistUtils.isNodeValid(node):
-            return [attr for attr in node.listAttr() if
-                    PlaylistUtils.attrPattern.match(str(attr))]
+            for attr in node.listAttr():
+                if PlaylistUtils.attrPattern.match(str(attr)):
+                    try:
+                        attr.setLocked(False)
+                    except: pass    
+                    attrs.append(attr)
+        return attrs
 
     @staticmethod
     def getSmallestUnusedAttrName(node):
