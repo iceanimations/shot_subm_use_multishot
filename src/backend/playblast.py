@@ -127,12 +127,16 @@ class PlayblastExport(Action):
             hidePolyCount()
             showDate()
             showNameLabel()
-    
+            exportutils.turnResolutionGateOff(item.camera)
+            exportutils.showFrameInfo(item)
+            
             self.makePlayblast()
-    
+            
+            exportutils.removeFrameInfo()
             removeDate()
             removeNameLabel()
             showPolyCount()
+            exportutils.turnResolutionGateOn(item.camera)
         
     def addLayers(self, layers):
         self['layers'][:] = layers

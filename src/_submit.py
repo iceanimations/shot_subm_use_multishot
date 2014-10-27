@@ -35,6 +35,8 @@ class Submitter(Form, Base):
         super(Submitter, self).__init__(parent)
         self.setupUi(self)
 
+        self.__colors_mapping__ = {'Red': 4, 'Green': 14, 'Yellow': 17}
+
         # setting up UI
         self.progressBar.hide()
         self.collapsed = False
@@ -181,6 +183,12 @@ class Submitter(Form, Base):
         self.setTotalCount()
         return item
 
+    def setHUDColor(self):
+        color = str(self.colorBox.currentText())
+        if color and color != 'Default':
+            exportutils.setHUDColor(self.__colors_mapping__.get(color),
+                                    self.__colors_mapping__.get(color))
+
     def export(self):
         self.exportButton.setEnabled(False)
         self.closeButton.setEnabled(False)
@@ -192,6 +200,8 @@ class Submitter(Form, Base):
         exportutils.setOriginalCamera()
         exportutils.setOriginalFrame()
         exportutils.setSelection()
+        exportutils.saveHUDColor()
+        self.setHUDColor()
         errors = {}
         self.progressBar.setValue(0)
         qApp.processEvents()
@@ -221,6 +231,7 @@ class Submitter(Form, Base):
         exportutils.restoreOriginalCamera()
         exportutils.restoreOriginalFrame()
         exportutils.restoreSelection()
+        exportutils.restoreHUDColor()
         self.exportButton.setEnabled(True)
         self.closeButton.setEnabled(True)
 
@@ -292,8 +303,7 @@ class ShotForm(Form1, Base1):
     def browseFolder(self):
         path = self.parentWin._previousPath
         if not path: path = ''
-        path = QFileDialog.getExistingDirectory(self, 'Select Folder',
-                path, QFileDialog.ShowDirsOnly)
+        path = QFileDialog.getExistingDirectory(self, 'Select Folder', path)
         if path:
             self.parentWin._previousPath = path
         return path
