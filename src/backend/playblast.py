@@ -171,7 +171,10 @@ class PlayblastExport(Action):
                 pc.warning("Item not set: cannot make playblast")
 
         conf = self._conf
-        if sound: sound = exportutils.getAudioNode()
+        if sound:
+            sound = exportutils.getAudioNode()
+            if not sound:
+                sound = ['']
         else: sound=['']
         pc.playblast(st=item.getInFrame(),
                 et=item.getOutFrame(),
