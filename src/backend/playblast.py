@@ -110,7 +110,7 @@ class PlayblastExport(Action):
         conf['HUDs']=huds
         return conf
 
-    def perform(self, readconf=True):
+    def perform(self, readconf=True, **kwargs):
         if self.enabled:
             for layer in PlayListUtils.getDisplayLayers():
                 if layer.name() in self.getLayers():
@@ -130,7 +130,7 @@ class PlayblastExport(Action):
             exportutils.turnResolutionGateOff(item.camera)
             exportutils.showFrameInfo(item)
             
-            self.makePlayblast()
+            self.makePlayblast(sound=kwargs.get('sound'))
             
             exportutils.removeFrameInfo()
             removeDate()
@@ -164,16 +164,19 @@ class PlayblastExport(Action):
                 pc.headsUpDisplay(hud, remove=True)
 
 
-    def makePlayblast(self, item=None):
+    def makePlayblast(self, item=None, sound=None):
         if not item:
             item = self.__item__
             if not item:
                 pc.warning("Item not set: cannot make playblast")
 
         conf = self._conf
-
+        if sound: sound = str(exportutils.getAudioNode())
+        else: sound=''
+        print 'sound:', sound
         pc.playblast(st=item.getInFrame(),
                 et=item.getOutFrame(),
                 f=osp.join(self.path, item.name),
+                s=sound,
                 **conf['playblastargs'])
 

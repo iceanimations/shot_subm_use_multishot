@@ -56,6 +56,7 @@ def showFrameInfo(pl_item):
         return fps
     def getInOut():
         return inOut
+    removeFrameInfo()
     pc.headsUpDisplay(__hud_frame_1__, lfs='large', label='FPS', section=6, block=pc.headsUpDisplay(nfb=6), blockSize='large', dfs='large', command=getFps)
     pc.headsUpDisplay(__hud_frame_2__, lfs='large', label='In Out', section=6, block=pc.headsUpDisplay(nfb=6), blockSize='large', dfs='large', command=getInOut)
     pc.Mel.eval('setCurrentFrameVisibility(1)')
@@ -102,6 +103,9 @@ def turnResolutionGateOn(camera):
         pc.camera(camera, e=True, displaySafeTitle=True, overscan=1.3)
         __safeTitle__ = False
     
+def getAudioNode():
+    nodes = pc.ls(type=['audio'])
+    return nodes if nodes else []
 
 def setOriginalCamera():
     global __original_camera__
@@ -131,9 +135,8 @@ def restoreSelection():
     __selection__ = None
     
 def getObjects():
-    combinedMeshes = []
-    for mesh in pc.ls(type='mesh'):
-        transform = mesh.firstParent().name()
-        if 'combined_mesh' in transform.lower():
-            combinedMeshes.append(transform)
-    return combinedMeshes
+    objSets = []
+    for _set in pc.ls(type=pc.nt.ObjectSet):
+        if 'geo_set' in str(_set).lower():
+            objSets.append(_set.name())
+    return objSets

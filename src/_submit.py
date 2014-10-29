@@ -211,7 +211,7 @@ class Submitter(Form, Base):
             if pl_item.selected:
                 qApp.processEvents()
                 print 'actions:', pl_item.actions
-                pl_item.actions.perform()
+                pl_item.actions.perform(sound=self.audioButton.isChecked())
                 self.progressBar.setValue(count)
                 qApp.processEvents()
                 count += 1
@@ -480,12 +480,14 @@ class ShotForm(Form1, Base1):
                 pb = PlayblastExport()
                 pb.enabled = self.playblastEnableButton.isChecked()
                 pb.addLayers(self.getSelectedLayers())
-                pb.path = playblastPath
+                if playblastPath:
+                    pb.path = playblastPath
                 
                 ce = CacheExport()
                 ce.enabled = self.cacheEnableButton.isChecked()
                 ce.addObjects(self.getSelectedObjects())
-                ce.path = cachePath
+                if cachePath:
+                    ce.path = cachePath
                 
                 newItem.actions.add(pb)
                 newItem.actions.add(ce)

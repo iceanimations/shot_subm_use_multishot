@@ -30,30 +30,32 @@ class CacheExport(Action):
         conf["start_time"] = 0
         conf["end_time"] = 1
         conf["cache_file_dist"] = "OneFile"
-        conf["refresh_during_caching"] = 1
+        conf["refresh_during_caching"] = 0
         conf["cache_dir"] = ''
-        conf["cache_per_geo"] = 1
+        conf["cache_per_geo"] = "1"
         conf["cache_name"] = ""
         conf["cache_name_as_prefix"] = 0
         conf["action_to_perform"] = "export"
         conf["force_save"] = 0
         conf["simulation_rate"] = 1
         conf["sample_multiplier"] = 1
-        conf["inherit_modf_from_cache"] = 0
+        conf["inherit_modf_from_cache"] = 1
         conf["store_doubles_as_float"] = 1
-        conf["cache_format"] = "mcx"
+        conf["cache_format"] = "mcc"
         return conf
     
-    def perform(self):
-        print 'cache enabled:', self.enabled
+    def perform(self, **kwargs):
         if self.enabled:
             conf = self._conf
             item = self._item
             conf["start_time"] = item.getInFrame()
             conf["end_time"] = item.getOutFrame()
             conf["cache_dir"] = self.path.replace('\\', '/')
-            print 'conf:', conf
+            
             self.exportCache(conf)
+            
+            pc.delete(map(lambda x: x.getParent(),self.combineMeshes))
+            del self.combineMeshes[:]
         
     def getPath(self):
         return self.get('path')
@@ -67,12 +69,31 @@ class CacheExport(Action):
         self['objects'][:] = objects
     objects = property(getObjects, addObjects)
     
+    def MakeMeshes(self, objSets):
+        self.combineMeshes = []
+        for objectSet in [setName for setName in objSets
+                          if type(pc.PyNode(setName)) != pc.nt.Mesh]:
+            pc.select(pc.PyNode(objectSet).members())
+            meshes = [shape
+                      for transform in pc.PyNode(objectSet).dsm.inputs(
+                              type = "transform")
+                      for shape in transform.getShapes(type = "mesh",
+                                                       ni = True)]
+            combineMesh = pc.createNode("mesh")
+            pc.rename(combineMesh, objectSet.split(":")[-1].split('|')[-1]+"_cache")
+            self.combineMeshes.append(combineMesh)
+            polyUnite = pc.createNode("polyUnite")
+            for i in xrange(0, len(meshes)):
+                meshes[i].outMesh >> polyUnite.inputPoly[i]
+                meshes[i].worldMatrix[0] >> polyUnite.inputMat[i]
+            polyUnite.output >> combineMesh.inMesh
+        pc.select(self.combineMeshes)
+    
     def exportCache(self, conf):
         pc.select(cl=True)
         if self.get('objects'):
             command =  'doCreateGeometryCache2 {version} {{ "{time_range_mode}", "{start_time}", "{end_time}", "{cache_file_dist}", "{refresh_during_caching}", "{cache_dir}", "{cache_per_geo}", "{cache_name}", "{cache_name_as_prefix}", "{action_to_perform}", "{force_save}", "{simulation_rate}", "{sample_multiplier}", "{inherit_modf_from_cache}", "{store_doubles_as_float}", "{cache_format}"}};'.format(**conf)
-            print 'command:', command
-            for obj in self.get('objects'):
-                pc.select(obj, add=True)
+            print command
+            self.MakeMeshes(self.get('objects'))
             pc.Mel.eval(command)
             

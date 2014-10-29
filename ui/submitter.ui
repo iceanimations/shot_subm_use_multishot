@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>527</width>
-    <height>762</height>
+    <width>451</width>
+    <height>719</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -110,8 +110,8 @@ padding-bottom: 1px;</string>
         <rect>
          <x>0</x>
          <y>0</y>
-         <width>507</width>
-         <height>667</height>
+         <width>431</width>
+         <height>624</height>
         </rect>
        </property>
        <layout class="QVBoxLayout" name="verticalLayout_4">
@@ -231,6 +231,13 @@ padding-bottom: 1px;</string>
          </size>
         </property>
        </spacer>
+      </item>
+      <item>
+       <widget class="QCheckBox" name="audioButton">
+        <property name="text">
+         <string>Audio</string>
+        </property>
+       </widget>
       </item>
       <item>
        <widget class="QPushButton" name="exportButton">
