@@ -56,6 +56,21 @@ class CacheExport(Action):
             
             pc.delete(map(lambda x: x.getParent(),self.combineMeshes))
             del self.combineMeshes[:]
+            
+            pc.select(item.camera)
+            self.exportCam(osp.join(self.path, item.name.replace(':', '_').replace('|', '_')).replace('\\', '/'))
+            
+    def exportCam(self, path):
+        pc.exportSelected(path,
+                  force=True,
+                  expressions = False,
+                  constructionHistory = False,
+                  channels = True,
+                  shader = False,
+                  constraints = False,
+                  options="v=0",
+                  typ="mayaAscii",
+                  pr = False)
         
     def getPath(self):
         return self.get('path')

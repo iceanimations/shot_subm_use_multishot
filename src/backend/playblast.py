@@ -173,10 +173,9 @@ class PlayblastExport(Action):
         conf = self._conf
         if sound: sound = exportutils.getAudioNode()
         else: sound=['']
-        print 'sound:', sound[0].name()
         pc.playblast(st=item.getInFrame(),
                 et=item.getOutFrame(),
-                f=osp.join(self.path, item.name),
-                s=sound[0].name(),
+                f=osp.join(self.path, item.name.replace(':', '_').replace('|', '_')),
+                s=str(sound[0]),
                 **conf['playblastargs'])
 
