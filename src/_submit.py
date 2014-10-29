@@ -59,6 +59,7 @@ class Submitter(Form, Base):
         self.searchBox.returnPressed.connect(lambda: self.searchShots
                                              (str(self.searchBox.text())))
         self.exportButton.clicked.connect(self.export)
+        self.browseButton.clicked.connect(self.browseFolder)
 
         # Populating Items
         self._playlist = Playlist()
@@ -66,6 +67,11 @@ class Submitter(Form, Base):
         self.populate()
 
         appUsageApp.updateDatabase('shot_subm')
+        
+    def browseFolder(self):
+        path = QFileDialog.getExistingDirectory(self, 'Select Folder', '')
+        if path:
+            self.pathBox.setText(path)
         
     def setSelectedCount(self):
         count = 0
@@ -268,7 +274,6 @@ class ShotForm(Form1, Base1):
         self.fillButton.setIcon(QIcon(osp.join(icon_path, 'ic_fill.png')))
 
 
-
         self.cameraBox.activated.connect(self.handleCameraBox)
         self.createButton.clicked.connect(self.callCreate)
         self.keyFrameButton.clicked.connect(self.handleKeyFrameClick)
@@ -375,6 +380,9 @@ class ShotForm(Form1, Base1):
             self.startFrameBox.setValue(self.startFrame)
             self.endFrameBox.setValue(self.endFrame)
             
+    def autoCreate(self):
+        return self.autoCreateButton.isChecked()
+            
     def callCreate(self):
         playblastPath = str(self.playblastPathBox.text())
         cachePath = str(self.cachePathBox.text())
@@ -384,11 +392,11 @@ class ShotForm(Form1, Base1):
             return
         
         if self.playblastEnableButton.isChecked():
-            if not playblastPath:
+            if not playblastPath and not self.autoCreate():
                 showMessage(self,
                             msg='Playblast Path not specified', icon=QMessageBox.Warning)
                 return
-            if not osp.exists(playblastPath):
+            if not osp.exists(playblastPath) and not self.autoCreate():
                 showMessage(self, title='Error', msg='Playblast path does not '+
                             'exist', icon=QMessageBox.Information)
                 return
@@ -397,11 +405,11 @@ class ShotForm(Form1, Base1):
 #                             ' at least one')
 #                 return
         if self.cacheEnableButton.isChecked():
-            if not cachePath:
+            if not cachePath and not self.autoCreate():
                 showMessage(self,
                             msg='Cache Path not specified', icon=QMessageBox.Warning)
                 return
-            if not osp.exists(cachePath):
+            if not osp.exists(cachePath) and not self.autoCreate():
                 showMessage(self, title='Error', msg='Cache path does not '+
                             'exist', icon=QMessageBox.Information)
                 return
@@ -435,8 +443,19 @@ class ShotForm(Form1, Base1):
         self.progressBar.show()
         for i in range(_max):
             name = str(self.cameraBox.itemText(i))
+            pathName = name.split(':')[-1].split('|')[-1]
             cam = pc.PyNode(name)
             start, end = self.getKeyFrame(cam)
+            prefixPath = str(self.parentWin.pathBox.text())
+            if not osp.exists(prefixPath):
+                showMessage(self, title='Error', msg='Sequence path does not exists',
+                            icon=QMessageBox.Information)
+                return
+            prefixPath = osp.join(prefixPath, 'SHOTS')
+            shotPath = osp.join(prefixPath, pathName)
+            animPath = osp.join(shotPath, 'animaition')
+            playblastPath = osp.join(animPath, 'preview')
+            cachePath = osp.join(animPath, 'cache')
             self.create(name, cam, start, end, playblastPath, cachePath)
             self.progressBar.setValue(i+1)
             qApp.processEvents()

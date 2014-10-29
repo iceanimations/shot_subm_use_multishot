@@ -58,9 +58,10 @@ class CacheExport(Action):
             del self.combineMeshes[:]
             
             pc.select(item.camera)
-            self.exportCam(osp.join(self.path, item.name.replace(':', '_').replace('|', '_')).replace('\\', '/') +'_cam')
+            self.exportCam(self.path)
             
     def exportCam(self, path):
+        path = osp.join(osp.dirname(path), 'camera')
         pc.exportSelected(path,
                   force=True,
                   expressions = False,
