@@ -171,12 +171,12 @@ class PlayblastExport(Action):
                 pc.warning("Item not set: cannot make playblast")
 
         conf = self._conf
-        if sound: sound = str(exportutils.getAudioNode())
-        else: sound=''
-        print 'sound:', sound
+        if sound: sound = exportutils.getAudioNode()
+        else: sound=['']
+        print 'sound:', sound[0].name()
         pc.playblast(st=item.getInFrame(),
                 et=item.getOutFrame(),
                 f=osp.join(self.path, item.name),
-                s=sound,
+                s=sound[0].name(),
                 **conf['playblastargs'])
 
