@@ -102,6 +102,12 @@ def turnResolutionGateOn(camera):
     if __safeTitle__:
         pc.camera(camera, e=True, displaySafeTitle=True, overscan=1.3)
         __safeTitle__ = False
+        
+def hideShowCurves(flag):
+    if flag:
+        pc.hide(pc.ls(type=pc.nt.NurbsCurve))
+    else:
+        pc.showHidden(pc.ls(type=pc.nt.NurbsCurve))
     
 def getAudioNode():
     nodes = pc.ls(type=['audio'])

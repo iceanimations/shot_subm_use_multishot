@@ -201,6 +201,7 @@ class Submitter(Form, Base):
         exportutils.setOriginalFrame()
         exportutils.setSelection()
         exportutils.saveHUDColor()
+        exportutils.hideShowCurves(True)
         self.setHUDColor()
         errors = {}
         self.progressBar.setValue(0)
@@ -232,6 +233,7 @@ class Submitter(Form, Base):
         exportutils.restoreOriginalFrame()
         exportutils.restoreSelection()
         exportutils.restoreHUDColor()
+        exportutils.hideShowCurves(False)
         self.exportButton.setEnabled(True)
         self.closeButton.setEnabled(True)
 
