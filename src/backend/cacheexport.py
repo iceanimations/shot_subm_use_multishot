@@ -61,7 +61,8 @@ class CacheExport(Action):
             self.exportCam(self.path)
             
     def exportCam(self, path):
-        path = osp.join(osp.dirname(path), self._item.name.split(':')[-1].split('|')[-1]+'_cam')
+        path = osp.join(osp.dirname(path), 'camera')
+        path = osp.join(path, self._item.name.split(':')[-1].split('|')[-1]+'_cam')
         pc.exportSelected(path,
                   force=True,
                   expressions = False,
