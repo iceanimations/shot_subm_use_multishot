@@ -448,7 +448,7 @@ class ShotForm(Form1, Base1):
             start, end = self.getKeyFrame(cam)
             prefixPath = str(self.parentWin.pathBox.text())
             if not osp.exists(prefixPath):
-                showMessage(self, title='Error', msg='Sequence path does not exists',
+                showMessage(self, title='Error', msg='Sequence path does not exist',
                             icon=QMessageBox.Information)
                 return
             prefixPath = osp.join(prefixPath, 'SHOTS')
