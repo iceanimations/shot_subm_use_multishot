@@ -453,7 +453,7 @@ class ShotForm(Form1, Base1):
                 return
             prefixPath = osp.join(prefixPath, 'SHOTS')
             shotPath = osp.join(prefixPath, pathName)
-            animPath = osp.join(shotPath, 'animaition')
+            animPath = osp.join(shotPath, 'animation')
             playblastPath = osp.join(animPath, 'preview')
             cachePath = osp.join(animPath, 'cache')
             self.create(name, cam, start, end, playblastPath, cachePath)
