@@ -41,7 +41,7 @@ class Playlist(object):
     def populate(self):
         attrs = plu.getSceneAttrs()
         for a in attrs:
-            PlaylistItem(a, readFromScene=True)
+            PlaylistItem(a, readFromScene=True, saveToScene=False)
 
     def __itemBelongs(self, item):
         if not self._code or self._code in item.__playlistcodes__:
@@ -130,7 +130,6 @@ class PlaylistItem(object):
         if outframe:
             self.outFrame = outframe
         if not self.name:
-            #TODO: discuss splitting with talha
             self.name = self.camera.name().split('|')[-1].split(':')[-1]
         if not self.inFrame or not self.outFrame:
             self.autosetInOut()
@@ -210,9 +209,9 @@ class PlaylistItem(object):
                 raise (pc.MayaNodeError,
                         'camera %s does not exist'%self.__attr.node().name())
         datastring = json.dumps(self.__data)
-        self.__attr.set(l=False)
+        #self.__attr.set(l=False)
         self.__attr.set(datastring)
-        self.__attr.set(l=True)
+        #self.__attr.set(l=True)
 
     def readFromScene(self):
         if not self.existsInScene():
@@ -240,7 +239,7 @@ class PlaylistItem(object):
         except KeyError:
             pass
         try:
-            self.__attr.set(l=False)
+            #self.__attr.set(l=False)
             self.__attr.delete() # del attributes on refs and locked nodes?
         except pc.MayaAttributeError:
             pass
@@ -270,6 +269,7 @@ class PlaylistUtils(object):
     def isNodeValid(node):
         if (type(node)!=pc.nt.Transform or not
                 node.getShapes(type='camera')):
+            print node
             raise (TypeError,
                     "node must be a pc.nt.Transform of a camera shape")
         return True
@@ -278,21 +278,24 @@ class PlaylistUtils(object):
     def getSceneAttrs():
         ''' Get all shotInfo attributes in the Scene (or current namespace)'''
         attrs = []
-        nodes = []
         for camera in pc.ls(type='camera'):
-            nodes = camera.getAllParents()
-            for node in nodes:
-                if type(node) != pc.nt.Transform:
-                    continue
+            node = camera.firstParent()
+            if type(node) == pc.nt.Transform:
                 attrs.extend(PlaylistUtils.getAttrs(node))
         return attrs
 
     @staticmethod
     def getAttrs(node):
         ''' Get all ShotInfo attributes from the node '''
+        attrs = []
         if PlaylistUtils.isNodeValid(node):
-            return [attr for attr in node.listAttr() if
-                    PlaylistUtils.attrPattern.match(str(attr))]
+            for attr in node.listAttr():
+                if PlaylistUtils.attrPattern.match(str(attr)):
+                    try:
+                        attr.setLocked(False)
+                    except: pass    
+                    attrs.append(attr)
+        return attrs
 
     @staticmethod
     def getSmallestUnusedAttrName(node):
@@ -309,7 +312,7 @@ class PlaylistUtils(object):
         attrName = PlaylistUtils.getSmallestUnusedAttrName(node)
         pc.addAttr(node, ln=attrName, dt="string", h=True)
         attr = node.attr(attrName)
-        attr.setLocked(True)
+        #attr.setLocked(True)
         return attr
 
     @staticmethod
@@ -350,8 +353,12 @@ class PlaylistUtils(object):
             
     @staticmethod
     def getDisplayLayers():
-        return [pc.PyNode(layer) for layer in pc.layout('LayerEditorDisplayLayerLayout',
-                         q=True, childArray=True)]
+        try:
+            return [pc.PyNode(layer) for layer in pc.layout('LayerEditorDisplayLayerLayout',
+                             q=True, childArray=True)]
+        except TypeError:
+            pc.warning('Display layers not found in the scene')
+            return []
         
     @staticmethod
     def getDisplayLayersState():

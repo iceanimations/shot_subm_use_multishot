@@ -48,10 +48,10 @@ class ActionList(OrderedDict):
                 actions.append(self[ak])
         return actions
 
-    def perform(self):
+    def perform(self, **kwargs):
         for action in self.getActions():
-            if action.enabled:
-                action.perform()
+            print 'action:', action
+            action.perform(**kwargs)
 
     def add(self, action):
         if not isinstance(action, Action):

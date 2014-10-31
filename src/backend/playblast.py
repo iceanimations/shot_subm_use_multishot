@@ -6,6 +6,7 @@ from collections import OrderedDict
 import pymel.core as pc
 import os
 import os.path as osp
+import exportutils
 
 
 
@@ -82,7 +83,7 @@ class PlayblastExport(Action):
     def __init__(self, *args, **kwargs):
         super(PlayblastExport, self).__init__(*args, **kwargs)
         self._conf = self.initConf()
-        if not self.get('layers'):
+        if not self.get('layers'): # display layers
             self['layers'] = []
         if not self.path:
             self.path = osp.expanduser('~')
@@ -109,36 +110,33 @@ class PlayblastExport(Action):
         conf['HUDs']=huds
         return conf
 
-    def perform(self, readconf=True):
-        for layer in PlayListUtils.getDisplayLayers():
-            if layer.name() in self.getLayers():
-                layer.visibility.set(1)
-            else: layer.visibility.set(0)
-        item = self.__item__
-        try:
-            if readconf: self.read_conf()
-        except IOError:
-            self._conf = PlayblastExport.initConf()
-        # Hide layers
-        
-        origCam = pc.lookThru(q=True)
-        pc.select(item.camera)
-        pc.lookThru(item.camera)
-        hidePolyCount()
-        showDate()
-        showNameLabel()
-        recordCurrentFrame()
-        # TODO: self.addHUDs()
-
-        self.makePlayblast()
-
-        removeDate()
-        removeNameLabel()
-        showPolyCount()
-        pc.lookThru(origCam)
-        restoreCurrentFrame()
-        # Show layers back
-        #self.removeHUDs()
+    def perform(self, readconf=True, **kwargs):
+        if self.enabled:
+            for layer in PlayListUtils.getDisplayLayers():
+                if layer.name() in self.getLayers():
+                    layer.visibility.set(1)
+                else: layer.visibility.set(0)
+            item = self.__item__
+            try:
+                if readconf: self.read_conf()
+            except IOError:
+                self._conf = PlayblastExport.initConf()
+            
+            pc.select(item.camera)
+            pc.lookThru(item.camera)
+            hidePolyCount()
+            showDate()
+            showNameLabel()
+            exportutils.turnResolutionGateOff(item.camera)
+            exportutils.showFrameInfo(item)
+            
+            self.makePlayblast(sound=kwargs.get('sound'))
+            
+            exportutils.removeFrameInfo()
+            removeDate()
+            removeNameLabel()
+            showPolyCount()
+            exportutils.turnResolutionGateOn(item.camera)
         
     def addLayers(self, layers):
         self['layers'][:] = layers
@@ -166,16 +164,21 @@ class PlayblastExport(Action):
                 pc.headsUpDisplay(hud, remove=True)
 
 
-    def makePlayblast(self, item=None):
+    def makePlayblast(self, item=None, sound=None):
         if not item:
             item = self.__item__
             if not item:
                 pc.warning("Item not set: cannot make playblast")
 
         conf = self._conf
-
+        if sound:
+            sound = exportutils.getAudioNode()
+            if not sound:
+                sound = ['']
+        else: sound=['']
         pc.playblast(st=item.getInFrame(),
                 et=item.getOutFrame(),
-                f=osp.join(self.path, item.name),
+                f=osp.join(self.path, item.name.replace(':', '_').replace('|', '_')),
+                s=str(sound[0]),
                 **conf['playblastargs'])
 

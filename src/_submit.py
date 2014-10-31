@@ -17,6 +17,8 @@ import backend
 import appUsageApp
 reload(backend)
 
+CacheExport = backend.CacheExport
+exportutils = backend.exportutils
 Playlist = backend.Playlist
 PlayblastExport = backend.PlayblastExport
 PlayListUtils = backend.PlayListUtils
@@ -32,6 +34,8 @@ class Submitter(Form, Base):
     def __init__(self, parent=qtfy.getMayaWindow()):
         super(Submitter, self).__init__(parent)
         self.setupUi(self)
+
+        self.__colors_mapping__ = {'Red': 4, 'Green': 14, 'Yellow': 17}
 
         # setting up UI
         self.progressBar.hide()
@@ -55,6 +59,7 @@ class Submitter(Form, Base):
         self.searchBox.returnPressed.connect(lambda: self.searchShots
                                              (str(self.searchBox.text())))
         self.exportButton.clicked.connect(self.export)
+        self.browseButton.clicked.connect(self.browseFolder)
 
         # Populating Items
         self._playlist = Playlist()
@@ -62,6 +67,11 @@ class Submitter(Form, Base):
         self.populate()
 
         appUsageApp.updateDatabase('shot_subm')
+        
+    def browseFolder(self):
+        path = QFileDialog.getExistingDirectory(self, 'Select Folder', '')
+        if path:
+            self.pathBox.setText(path)
         
     def setSelectedCount(self):
         count = 0
@@ -179,6 +189,12 @@ class Submitter(Form, Base):
         self.setTotalCount()
         return item
 
+    def setHUDColor(self):
+        color = str(self.colorBox.currentText())
+        if color and color != 'Default':
+            exportutils.setHUDColor(self.__colors_mapping__.get(color),
+                                    self.__colors_mapping__.get(color))
+
     def export(self):
         self.exportButton.setEnabled(False)
         self.closeButton.setEnabled(False)
@@ -187,20 +203,28 @@ class Submitter(Form, Base):
         self.progressBar.setMaximum(len([i for i in self.items
                                          if i.isChecked()]))
         state = PlayListUtils.getDisplayLayersState()
+        exportutils.setOriginalCamera()
+        exportutils.setOriginalFrame()
+        exportutils.setSelection()
+        exportutils.saveHUDColor()
+        exportutils.hideShowCurves(True)
+        self.setHUDColor()
         errors = {}
         self.progressBar.setValue(0)
         qApp.processEvents()
         count = 1
         for pl_item in self._playlist.getItems():
-            try:
-                if pl_item.selected:
-                    qApp.processEvents()
-                    pl_item.actions.perform()
-                    self.progressBar.setValue(count)
-                    qApp.processEvents()
-                    count += 1
-            except Exception as e:
-                errors[pl_item.name] = str(e)
+            #try:
+            if pl_item.selected:
+                qApp.processEvents()
+                print 'actions:', pl_item.actions
+                pl_item.actions.perform(sound=self.audioButton.isChecked())
+                self.progressBar.setValue(count)
+                qApp.processEvents()
+                count += 1
+            #except Exception as e:
+                #import traceback
+                #errors[pl_item.name] = str(traceback.format_exc())
         self.progressBar.hide()
         temp = ' shots ' if len(errors) > 1 else ' shot '
         if errors:
@@ -211,6 +235,11 @@ class Submitter(Form, Base):
                         'not exported successfully',
                         icon=QMessageBox.Critical, details=detail)
         PlayListUtils.restoreDisplayLayersState(state)
+        exportutils.restoreOriginalCamera()
+        exportutils.restoreOriginalFrame()
+        exportutils.restoreSelection()
+        exportutils.restoreHUDColor()
+        exportutils.hideShowCurves(False)
         self.exportButton.setEnabled(True)
         self.closeButton.setEnabled(True)
 
@@ -230,7 +259,10 @@ class ShotForm(Form1, Base1):
         self.progressBar.hide()
         self.addCameras()
         self.pl_item = pl_item
+        self.objectsSearchTerm = 'combined_mesh'
         self.layerButtons = []
+        self.objectButtons = []
+        self.addObjects()
         self.addLayers()
         if self.pl_item:
             self.createButton.setText('Ok')
@@ -242,11 +274,11 @@ class ShotForm(Form1, Base1):
         self.fillButton.setIcon(QIcon(osp.join(icon_path, 'ic_fill.png')))
 
 
-
         self.cameraBox.activated.connect(self.handleCameraBox)
         self.createButton.clicked.connect(self.callCreate)
         self.keyFrameButton.clicked.connect(self.handleKeyFrameClick)
-        self.browseButton.clicked.connect(self.browseFolder)
+        self.playblastBrowseButton.clicked.connect(self.playblastBrowseFolder)
+        self.cacheBrowseButton.clicked.connect(self.cacheBrowseFolder)
         self.fillButton.clicked.connect(self.fillName)
         
     def addLayers(self):
@@ -255,21 +287,33 @@ class ShotForm(Form1, Base1):
             btn.setChecked(layer.visibility.get())
             self.layerLayout.addWidget(btn)
             self.layerButtons.append(btn)
-        
+            
+    def addObjects(self):
+        for obj in exportutils.getObjects():
+            btn = QCheckBox(obj, self)
+            self.objectsLayout.addWidget(btn)
+            self.objectButtons.append(btn)
+
     def fillName(self):
-        self.nameBox.setText(self.cameraBox.currentText())
+        self.nameBox.setText(self.cameraBox.currentText().replace(':', '_').replace('|', '_'))
+        
+    def cacheBrowseFolder(self):
+        path = self.browseFolder()
+        if path:
+            self.cachePathBox.setText(path)
+            
+    def playblastBrowseFolder(self):
+        path = self.browseFolder()
+        if path:
+            self.playblastPathBox.setText(path)
 
     def browseFolder(self):
-        path = self.pathBox.text()
-        if not path:
-            path = self.parentWin._previousPath
-        if not path:
-            path = pc.workspace(q=1, dir=1)
-        path = QFileDialog.getExistingDirectory(self, 'Select Folder',
-                path, QFileDialog.ShowDirsOnly)
+        path = self.parentWin._previousPath
+        if not path: path = ''
+        path = QFileDialog.getExistingDirectory(self, 'Select Folder', path)
         if path:
             self.parentWin._previousPath = path
-            self.pathBox.setText(path)
+        return path
 
     def handleCameraBox(self, camera):
         camera = str(camera)
@@ -296,16 +340,18 @@ class ShotForm(Form1, Base1):
         self.startFrameBox.setValue(self.pl_item.inFrame)
         self.endFrameBox.setValue(self.pl_item.outFrame)
         playblast = PlayblastExport.getActionFromList(self.pl_item.actions)
-        for btn in self.layerButtons:
-            temp = str(btn.text())
-            if temp in playblast.get('layers'):
-                btn.setChecked(True)
-            else: btn.setChecked(False)
-        self.pathBox.setText(playblast.path)
+        self.playblastPathBox.setText(playblast.path)
         for layer in self.layerButtons:
             if str(layer.text()) in playblast.getLayers():
                 layer.setChecked(True)
             else: layer.setChecked(False)
+        self.playblastEnableButton.setChecked(playblast.enabled)
+        cacheAction = CacheExport.getActionFromList(self.pl_item.actions)
+        for btn in self.objectButtons:
+            if str(btn.text()) in cacheAction.objects:
+                btn.setChecked(True)
+        self.cacheEnableButton.setChecked(cacheAction.enabled)
+        self.cachePathBox.setText(cacheAction.path)
 
     def getKeyFrame(self, camera=None):
         if camera == None:
@@ -334,18 +380,45 @@ class ShotForm(Form1, Base1):
             self.startFrameBox.setValue(self.startFrame)
             self.endFrameBox.setValue(self.endFrame)
             
+    def autoCreate(self):
+        return self.autoCreateButton.isChecked()
+            
     def callCreate(self):
-        path = str(self.pathBox.text())
-        if not path:
-            showMessage(self,
-                        msg='Path not specified', icon=QMessageBox.Warning)
+        playblastPath = str(self.playblastPathBox.text())
+        cachePath = str(self.cachePathBox.text())
+        if not self.playblastEnableButton.isChecked() and not self.cacheEnableButton.isChecked():
+            showMessage(self, title='Shot Export', msg='No action is enabled, enable at least one',
+                        icon=QMessageBox.Warning)
             return
-        if not osp.exists(path):
-            showMessage(self, title='Error', msg='The system can not find '+
-                        'the path specified', icon=QMessageBox.Information)
-            return
+        
+        if self.playblastEnableButton.isChecked():
+            if not playblastPath and not self.autoCreate():
+                showMessage(self,
+                            msg='Playblast Path not specified', icon=QMessageBox.Warning)
+                return
+            if not osp.exists(playblastPath) and not self.autoCreate():
+                showMessage(self, title='Error', msg='Playblast path does not '+
+                            'exist', icon=QMessageBox.Information)
+                return
+#             if not [layer for layer in self.layerButtons if layer.isChecked()]:
+#                 showMessage(self, title='Shot Export', msg='No layer enabled, enable'+
+#                             ' at least one')
+#                 return
+        if self.cacheEnableButton.isChecked():
+            if not cachePath and not self.autoCreate():
+                showMessage(self,
+                            msg='Cache Path not specified', icon=QMessageBox.Warning)
+                return
+            if not osp.exists(cachePath) and not self.autoCreate():
+                showMessage(self, title='Error', msg='Cache path does not '+
+                            'exist', icon=QMessageBox.Information)
+                return
+            if not [obj for obj in self.objectButtons if obj.isChecked()]:
+                showMessage(self, title='Shot Export', msg='No object selected, '+
+                            'select at least one')
+                return
         if self.autoCreateButton.isChecked():
-            self.createAll(path)
+            self.createAll(playblastPath, cachePath)
         else:
             name = str(self.nameBox.text())
             if not name:
@@ -358,37 +431,62 @@ class ShotForm(Form1, Base1):
             else:
                 start = self.startFrameBox.value()
                 end = self.endFrameBox.value()
-            self.create(name, camera, start, end, path)
+            self.create(name, camera, start, end, playblastPath, cachePath)
             
     def getSelectedLayers(self):
         return [str(layer.text()) for layer in self.layerButtons
                 if layer.isChecked()]
         
-    def createAll(self, path):
+    def createAll(self, playblastPath, cachePath):
         _max = self.cameraBox.count()
         self.progressBar.setMaximum(_max)
         self.progressBar.show()
         for i in range(_max):
             name = str(self.cameraBox.itemText(i))
+            pathName = name.split(':')[-1].split('|')[-1]
             cam = pc.PyNode(name)
             start, end = self.getKeyFrame(cam)
-            self.create(name, cam, start, end, path)
+            prefixPath = str(self.parentWin.pathBox.text())
+            if not osp.exists(prefixPath):
+                showMessage(self, title='Error', msg='Sequence path does not exists',
+                            icon=QMessageBox.Information)
+                return
+            prefixPath = osp.join(prefixPath, 'SHOTS')
+            shotPath = osp.join(prefixPath, pathName)
+            animPath = osp.join(shotPath, 'animation')
+            playblastPath = osp.join(animPath, 'preview')
+            cachePath = osp.join(animPath, 'cache')
+            self.create(name, cam, start, end, playblastPath, cachePath)
             self.progressBar.setValue(i+1)
             qApp.processEvents()
         self.progressBar.hide()
         self.progressBar.setValue(0)
         self.accept()
 
+    def getSelectedObjects(self):
+        objs = []
+        for obj in self.objectButtons:
+            if obj.isChecked():
+                objs.append(str(obj.text()))
+        return objs
 
-    def create(self, name, camera, start, end, path):
+    def create(self, name, camera, start, end, playblastPath, cachePath):
         if self.pl_item: #update
             self.pl_item.name = name
             self.pl_item.camera = camera
             self.pl_item.inFrame = start
             self.pl_item.outFrame = end
+            
             pb = PlayblastExport.getActionFromList(self.pl_item.actions)
-            pb.path = path
+            pb.enabled = self.playblastEnableButton.isChecked()
+            pb.path = playblastPath
             pb.addLayers(self.getSelectedLayers())
+            
+            ce = CacheExport.getActionFromList(self.pl_item.actions)
+            ce.enabled = self.cacheEnableButton.isChecked()
+            ce.path = cachePath
+            ce.addObjects(self.getSelectedObjects())
+            
             self.pl_item.saveToScene()
             self.parentWin.getItem(self.pl_item, True).update()
             self.accept()
@@ -399,10 +497,21 @@ class ShotForm(Form1, Base1):
                 newItem.name = name
                 newItem.inFrame = start
                 newItem.outFrame = end
+                
                 pb = PlayblastExport()
+                pb.enabled = self.playblastEnableButton.isChecked()
                 pb.addLayers(self.getSelectedLayers())
-                pb.path = path
+                if playblastPath:
+                    pb.path = playblastPath
+                
+                ce = CacheExport()
+                ce.enabled = self.cacheEnableButton.isChecked()
+                ce.addObjects(self.getSelectedObjects())
+                if cachePath:
+                    ce.path = cachePath
+                
                 newItem.actions.add(pb)
+                newItem.actions.add(ce)
                 newItem.saveToScene()
                 self.parentWin.createItem(newItem)
 
@@ -440,15 +549,25 @@ class Item(Form2, Base2):
         self.selectButton.clicked.connect(self.toggleSelected)
         self.deleteButton.clicked.connect(self.delete)
         self.browseButton.clicked.connect(self.openLocation)
+        self.browseButton2.clicked.connect(self.openLocation2)
         self.titleFrame.mouseReleaseEvent = self.collapse
+        self.browseButton.hide()
+        self.browseButton2.hide()
+        
+        self.label.mouseDoubleClickEvent = lambda event: self.openLocation()
+        self.label_2.mouseDoubleClickEvent = lambda event: self.openLocation2()
+        self.playblastPathLabel.mouseDoubleClickEvent = lambda event: self.openLocation()
+        self.cachePathLabel.mouseDoubleClickEvent = lambda event: self.openLocation2()
 
     def update(self):
         if self.pl_item:
             self.setTitle(self.pl_item.name)
             self.setCamera(self.pl_item.camera.name())
-            path = PlayblastExport.getActionFromList(
+            playblastPath = PlayblastExport.getActionFromList(
                     self.pl_item.actions).path
-            self.setPath(path)
+            self.setPlayblastPath(playblastPath)
+            self.setCachePath(CacheExport.getActionFromList(self.pl_item.actions
+                                                            ).path)
             self.setFrame("%d to %d"%(self.pl_item.inFrame,
                 self.pl_item.outFrame))
 
@@ -471,6 +590,10 @@ class Item(Form2, Base2):
     def openLocation(self):
         pb = PlayblastExport.getActionFromList(self.pl_item.actions)
         subprocess.call('explorer %s'%pb.path, shell=True)
+
+    def openLocation2(self):
+        ce = CacheExport.getActionFromList(self.pl_item.actions)
+        subprocess.call('explorer %s'%ce.path, shell=True)
 
     def delete(self):
         btn = showMessage(self, title='Delete Shot', msg='Are you sure, delete '
@@ -499,11 +622,17 @@ class Item(Form2, Base2):
     def getFrame(self):
         return str(self.frameLabel.text())
 
-    def setPath(self, path):
-        self.pathLabel.setText(path)
+    def setPlayblastPath(self, path):
+        self.playblastPathLabel.setText(path)
 
-    def getPath(self):
-        return str(self.pathLabel.text())
+    def getPlayblastPath(self):
+        return str(self.playblastPathLabel.text())
+    
+    def setCachePath(self, path):
+        self.cachePathLabel.setText(path)
+        
+    def getCachePath(self):
+        return str(self.cachePathLabel.text())
 
     def setChecked(self, state):
         if self.pl_item:
@@ -529,7 +658,7 @@ class Item(Form2, Base2):
 
     def edit(self):
         self.parentWin.editItem(self.pl_item)
-        
+
 
 def showMessage(parent, title = 'Shot Export',
                 msg = 'Message', btns = QMessageBox.Ok,
@@ -546,5 +675,6 @@ def showMessage(parent, title = 'Shot Export',
         if details:
             mBox.setDetailedText(details)
         mBox.setStandardButtons(btns)
+        mBox.closeEvent = lambda event: mBox.deleteLater()
         buttonPressed = mBox.exec_()
         return buttonPressed
