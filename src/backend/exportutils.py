@@ -80,14 +80,14 @@ def turnResolutionGateOff(camera):
     global __safeAction__
     global __safeTitle__
     if pc.camera(camera, q=True, displayResolution=True):
-        pc.camera(camera, e=True, displayResolution=False, overscan=1.3)
         __resolutionGate__ = True
     if pc.camera(camera, q=True, displaySafeAction=True):
-        pc.camera(camera, e=True, displaySafeAction=False, overscan=1.3)
         __safeAction__ = True
     if pc.camera(camera, q=True, displaySafeTitle=True):
-        pc.camera(camera, e=True, displaySafeTitle=False, overscan=1.3)
         __safeTitle__ = True
+    pc.camera(camera, e=True, displayResolution=False, overscan=1.0)
+    pc.camera(camera, e=True, displaySafeAction=False, overscan=1.0)
+    pc.camera(camera, e=True, displaySafeTitle=False, overscan=1.0)
 
 def turnResolutionGateOn(camera):
     global __resolutionGate__
