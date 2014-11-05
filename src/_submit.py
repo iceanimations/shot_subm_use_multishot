@@ -415,8 +415,9 @@ class ShotForm(Form1, Base1):
                             'exist', icon=QMessageBox.Information)
                 return
             if not [obj for obj in self.objectButtons if obj.isChecked()]:
-                showMessage(self, title='Shot Export', msg='No object selected, '+
-                            'select at least one')
+                showMessage(self, title='Shot Export', msg='No object selected '+
+                            'for cache, select at least one or uncheck the '+
+                            '\"Enable\" button')
                 return
         if self.autoCreateButton.isChecked():
             self.createAll(playblastPath, cachePath)

@@ -25,6 +25,10 @@ __fps_mapping__ = {
                    'sec': 'seconds', 'min': 'minutes', 'hour': 'hours'
                    }
 
+def getDefaultResolution():
+    node = pc.ls('defaultResolution')[0]
+    return node.width.get(), node.height.get()
+
 def saveHUDColor():
     global __labelColor__
     __labelColor__ = pc.general.displayColor('headsUpDisplayLabels', dormant=True, q=True)

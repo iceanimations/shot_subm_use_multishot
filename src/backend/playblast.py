@@ -90,15 +90,16 @@ class PlayblastExport(Action):
 
     @staticmethod
     def initConf():
+        width, height = exportutils.getDefaultResolution()
         conf = OrderedDict()
         playblastargs = OrderedDict()
         playblastargs['fo']=True
         playblastargs['quality']=100
-        playblastargs['w']=1280
-        playblastargs['h']=720
+        playblastargs['w']=width
+        playblastargs['h']=height
         playblastargs['percent']=100
-        playblastargs['compression']='MS-CRAM'
-        playblastargs['format']='avi'
+        playblastargs['compression']='H.264'
+        playblastargs['format']='qt'
         playblastargs['sequenceTime']=0
         playblastargs['clearCache']=True
         playblastargs['viewer']=False
