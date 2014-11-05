@@ -196,52 +196,53 @@ class Submitter(Form, Base):
                                     self.__colors_mapping__.get(color))
 
     def export(self):
-        self.exportButton.setEnabled(False)
-        self.closeButton.setEnabled(False)
-        self.progressBar.show()
-        self.progressBar.setMinimum(0)
-        self.progressBar.setMaximum(len([i for i in self.items
-                                         if i.isChecked()]))
-        state = PlayListUtils.getDisplayLayersState()
-        exportutils.setOriginalCamera()
-        exportutils.setOriginalFrame()
-        exportutils.setSelection()
-        exportutils.saveHUDColor()
-        exportutils.hideShowCurves(True)
-        self.setHUDColor()
-        errors = {}
-        self.progressBar.setValue(0)
-        qApp.processEvents()
-        count = 1
-        for pl_item in self._playlist.getItems():
-            #try:
-            if pl_item.selected:
-                qApp.processEvents()
-                print 'actions:', pl_item.actions
-                pl_item.actions.perform(sound=self.audioButton.isChecked())
-                self.progressBar.setValue(count)
-                qApp.processEvents()
-                count += 1
-            #except Exception as e:
-                #import traceback
-                #errors[pl_item.name] = str(traceback.format_exc())
-        self.progressBar.hide()
-        temp = ' shots ' if len(errors) > 1 else ' shot '
-        if errors:
-            detail = ''
-            for shot in errors:
-                detail += 'Shot: '+ shot +'\nReason: '+ errors[shot] +'\n\n'
-            showMessage(self, title='Error', msg=str(len(errors))+temp+
-                        'not exported successfully',
-                        icon=QMessageBox.Critical, details=detail)
-        PlayListUtils.restoreDisplayLayersState(state)
-        exportutils.restoreOriginalCamera()
-        exportutils.restoreOriginalFrame()
-        exportutils.restoreSelection()
-        exportutils.restoreHUDColor()
-        exportutils.hideShowCurves(False)
-        self.exportButton.setEnabled(True)
-        self.closeButton.setEnabled(True)
+        try:
+            self.exportButton.setEnabled(False)
+            self.closeButton.setEnabled(False)
+            self.progressBar.show()
+            self.progressBar.setMinimum(0)
+            self.progressBar.setMaximum(len([i for i in self.items
+                                             if i.isChecked()]))
+            state = PlayListUtils.getDisplayLayersState()
+            exportutils.setOriginalCamera()
+            exportutils.setOriginalFrame()
+            exportutils.setSelection()
+            exportutils.saveHUDColor()
+            exportutils.hideShowCurves(True)
+            self.setHUDColor()
+            errors = {}
+            self.progressBar.setValue(0)
+            qApp.processEvents()
+            count = 1
+            for pl_item in self._playlist.getItems():
+                if pl_item.selected:
+                    qApp.processEvents()
+                    print 'actions:', pl_item.actions
+                    pl_item.actions.perform(sound=self.audioButton.isChecked())
+                    self.progressBar.setValue(count)
+                    qApp.processEvents()
+                    count += 1
+            temp = ' shots ' if len(errors) > 1 else ' shot '
+            if errors:
+                detail = ''
+                for shot in errors:
+                    detail += 'Shot: '+ shot +'\nReason: '+ errors[shot] +'\n\n'
+                showMessage(self, title='Error', msg=str(len(errors))+temp+
+                            'not exported successfully',
+                            icon=QMessageBox.Critical, details=detail)
+        except Exception as ex:
+            showMessage(self, title='Error', msg=str(ex),
+                        icon=QMessageBox.Critical)
+        finally:
+            self.progressBar.hide()
+            PlayListUtils.restoreDisplayLayersState(state)
+            exportutils.restoreOriginalCamera()
+            exportutils.restoreOriginalFrame()
+            exportutils.restoreSelection()
+            exportutils.restoreHUDColor()
+            exportutils.hideShowCurves(False)
+            self.exportButton.setEnabled(True)
+            self.closeButton.setEnabled(True)
 
     def getPlaylist(self):
         return self._playlist
@@ -450,6 +451,7 @@ class ShotForm(Form1, Base1):
             if not osp.exists(prefixPath):
                 showMessage(self, title='Error', msg='Sequence path does not exist',
                             icon=QMessageBox.Information)
+                self.progressBar.hide()
                 return
             prefixPath = osp.join(prefixPath, 'SHOTS')
             shotPath = osp.join(prefixPath, pathName)
