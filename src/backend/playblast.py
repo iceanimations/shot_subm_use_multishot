@@ -91,15 +91,17 @@ class PlayblastExport(Action):
     @staticmethod
     def initConf():
         width, height = exportutils.getDefaultResolution()
+        print type(width)
+        print width, height
         conf = OrderedDict()
         playblastargs = OrderedDict()
+        playblastargs['format']='qt'
         playblastargs['fo']=True
         playblastargs['quality']=100
         playblastargs['w']=width
         playblastargs['h']=height
         playblastargs['percent']=100
         playblastargs['compression']='H.264'
-        playblastargs['format']='qt'
         playblastargs['sequenceTime']=0
         playblastargs['clearCache']=True
         playblastargs['viewer']=False
@@ -177,9 +179,10 @@ class PlayblastExport(Action):
             if not sound:
                 sound = ['']
         else: sound=['']
-        pc.playblast(st=item.getInFrame(),
-                et=item.getOutFrame(),
-                f=osp.join(self.path, item.name.replace(':', '_').replace('|', '_')),
-                s=str(sound[0]),
-                **conf['playblastargs'])
+        pc.playblast(
+                    st=item.getInFrame(),
+                    et=item.getOutFrame(),
+                    f=osp.join(self.path, item.name.replace(':', '_').replace('|', '_')),
+                    s=str(sound[0]),
+                    **conf['playblastargs'])
 
