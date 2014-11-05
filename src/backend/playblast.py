@@ -101,7 +101,7 @@ class PlayblastExport(Action):
         playblastargs['w']=width
         playblastargs['h']=height
         playblastargs['percent']=100
-        playblastargs['compression']='H.264'
+        playblastargs['compression']="H.264"
         playblastargs['sequenceTime']=0
         playblastargs['clearCache']=True
         playblastargs['viewer']=False
@@ -179,6 +179,7 @@ class PlayblastExport(Action):
             if not sound:
                 sound = ['']
         else: sound=['']
+#        pc.playblast(format='qt', sequenceTime=0, clearCache=1, viewer=0, showOrnaments=1, fp=4, percent=100, compression="H.264" -quality 100 -widthHeight 1280 720;
         pc.playblast(
                     st=item.getInFrame(),
                     et=item.getOutFrame(),
