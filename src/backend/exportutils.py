@@ -32,8 +32,6 @@ def copyFile(src, des):
     src = src.replace('/', '\\\\')
     try:
         existingFile = osp.join(des, osp.basename(src))
-        print existingFile
-        print osp.exists(existingFile)
         if osp.exists(existingFile):
             print 'removing %s...'%existingFile
             os.remove(existingFile)
