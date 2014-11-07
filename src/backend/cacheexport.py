@@ -10,6 +10,7 @@ import os.path as osp
 from collections import OrderedDict
 import shutil
 import os
+import exportutils
 
 PlayListUtils = shotplaylist.PlaylistUtils
 Action = shotactions.Action
@@ -73,12 +74,8 @@ class CacheExport(Action):
                   options="v=0",
                   typ="mayaAscii",
                   pr = False)
-        try:
-            shutil.copy(tempFilePath, path)
-        except Exception as ex:
-            pc.warning(str(ex))
-        finally:
-            os.remove(tempFilePath)
+        tempFilePath += '.ma'
+        exportutils.copyFile(tempFilePath, path)
         
     def getPath(self):
         return self.get('path')
@@ -117,18 +114,15 @@ class CacheExport(Action):
         if self.get('objects'):
             path = conf.get('cache_dir')
             tempFilePath = osp.join(self.tempPath, 'cache')
-            tempFilePath.replace('\\', '/')
+            tempFilePath = tempFilePath.replace('\\', '/')
             conf['cache_dir'] = tempFilePath
             command =  'doCreateGeometryCache2 {version} {{ "{time_range_mode}", "{start_time}", "{end_time}", "{cache_file_dist}", "{refresh_during_caching}", "{cache_dir}", "{cache_per_geo}", "{cache_name}", "{cache_name_as_prefix}", "{action_to_perform}", "{force_save}", "{simulation_rate}", "{sample_multiplier}", "{inherit_modf_from_cache}", "{store_doubles_as_float}", "{cache_format}"}};'.format(**conf)
             self.MakeMeshes(self.get('objects'))
             pc.Mel.eval(command)
+            tempFilePath = tempFilePath.replace('/', '\\\\')
             try:
                 for phile in os.listdir(tempFilePath):
                     philePath = osp.join(tempFilePath, phile)
-                    shutil.copy(philePath, path)
+                    exportutils.copyFile(philePath, path)
             except Exception as ex:
                 pc.warning(str(ex))
-            finally:
-                for phile in os.listdir(tempFilePath):
-                    philePath = osp.join(tempFilePath, phile)
-                    os.remove(philePath)

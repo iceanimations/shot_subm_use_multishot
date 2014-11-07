@@ -92,8 +92,6 @@ class PlayblastExport(Action):
     @staticmethod
     def initConf():
         width, height = exportutils.getDefaultResolution()
-        print type(width)
-        print width, height
         conf = OrderedDict()
         playblastargs = OrderedDict()
         playblastargs['format']='qt'
@@ -188,17 +186,5 @@ class PlayblastExport(Action):
                      showOrnaments=1, fp=4, percent=100, compression="H.264",
                      quality=100, widthHeight=exportutils.getDefaultResolution(),
                      offScreen=1)
-        try:
-            shutil.copy(tempFilePath, self.path)
-        except Exception as ex:
-            pc.warning(str(ex))
-        finally:
-            os.remove(tempFilePath)
-        
-#         pc.playblast(
-#                     st=item.getInFrame(),
-#                     et=item.getOutFrame(),
-#                     f=osp.join(self.path, item.name.replace(':', '_').replace('|', '_')),
-#                     s=str(sound[0]),
-#                     **conf['playblastargs'])
-
+        tempFilePath += '.mov'
+        exportutils.copyFile(tempFilePath, self.path)

@@ -50,7 +50,6 @@ class ActionList(OrderedDict):
 
     def perform(self, **kwargs):
         for action in self.getActions():
-            print 'action:', action
             action.perform(**kwargs)
 
     def add(self, action):
