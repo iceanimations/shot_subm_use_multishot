@@ -5,6 +5,9 @@ Created on Oct 14, 2014
 '''
 import pymel.core as pc
 import os
+osp = os.path
+import shutil
+import time
 
 __original_camera__ = None
 __original_frame__ = None
@@ -24,6 +27,23 @@ __fps_mapping__ = {
                    'ntscf': 'NTSC Field 60 fps', 'millisec': 'milliseconds',
                    'sec': 'seconds', 'min': 'minutes', 'hour': 'hours'
                    }
+
+def copyFile(src, des):
+    src = src.replace('/', '\\\\')
+    try:
+        existingFile = osp.join(des, osp.basename(src))
+        if osp.exists(existingFile):
+            print 'removing %s...'%existingFile
+            os.remove(existingFile)
+        shutil.copy(src, des)
+    except Exception as ex:
+        pc.warning(str(ex))
+    finally:
+        os.remove(src)
+
+def getDefaultResolution():
+    node = pc.ls('defaultResolution')[0]
+    return node.width.get(), node.height.get()
 
 def getDefaultResolution():
     node = pc.ls('defaultResolution')[0]

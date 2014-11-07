@@ -7,6 +7,7 @@ import pymel.core as pc
 import os
 import os.path as osp
 import exportutils
+import shutil
 
 
 
@@ -93,6 +94,7 @@ class PlayblastExport(Action):
         width, height = exportutils.getDefaultResolution()
         conf = OrderedDict()
         playblastargs = OrderedDict()
+        playblastargs['format']='qt'
         playblastargs['fo']=True
         playblastargs['quality']=100
         playblastargs['w']=width
@@ -177,9 +179,13 @@ class PlayblastExport(Action):
             if not sound:
                 sound = ['']
         else: sound=['']
-        pc.playblast(st=item.getInFrame(),
-                et=item.getOutFrame(),
-                f=osp.join(self.path, item.name.replace(':', '_').replace('|', '_')),
-                s=str(sound[0]),
-                **conf['playblastargs'])
-
+        itemName = item.name.replace(':', '_').replace('|', '_')
+        tempFilePath = osp.join(self.tempPath, itemName)
+        pc.playblast(format='qt', fo=1, st=item.getInFrame(), et=item.getOutFrame(),
+                     f=tempFilePath,
+                     s=str(sound[0]), sequenceTime=0, clearCache=1, viewer=0,
+                     showOrnaments=1, fp=4, percent=100, compression="H.264",
+                     quality=100, widthHeight=exportutils.getDefaultResolution(),
+                     offScreen=1)
+        tempFilePath += '.mov'
+        exportutils.copyFile(tempFilePath, self.path)

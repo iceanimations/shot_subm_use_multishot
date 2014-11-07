@@ -50,7 +50,6 @@ class ActionList(OrderedDict):
 
     def perform(self, **kwargs):
         for action in self.getActions():
-            print 'action:', action
             action.perform(**kwargs)
 
     def add(self, action):
@@ -78,6 +77,7 @@ class Action(OrderedDict):
         super(Action, self).__init__(*args, **kwargs)
         if self.enabled is None:
             self.enabled = True
+        self.tempPath = osp.join(osp.expanduser('~'), 'multiShotExport')
 
     def getEnabled(self):
         return self.get('enabled')

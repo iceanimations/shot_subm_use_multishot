@@ -217,7 +217,6 @@ class Submitter(Form, Base):
             for pl_item in self._playlist.getItems():
                 if pl_item.selected:
                     qApp.processEvents()
-                    print 'actions:', pl_item.actions
                     pl_item.actions.perform(sound=self.audioButton.isChecked())
                     self.progressBar.setValue(count)
                     qApp.processEvents()
@@ -269,6 +268,8 @@ class ShotForm(Form1, Base1):
             self.createButton.setText('Ok')
             self.populate()
             self.autoCreateButton.hide()
+        else:
+            self.fillPathBoxes()
         self.startFrame = None
         self.endFrame = None
 
@@ -282,6 +283,14 @@ class ShotForm(Form1, Base1):
         self.cacheBrowseButton.clicked.connect(self.cacheBrowseFolder)
         self.fillButton.clicked.connect(self.fillName)
         
+    def fillPathBoxes(self):
+        path1 = self.getPlayblastPath(self.getCurrentCameraName())
+        if osp.exists(path1): 
+            self.playblastPathBox(path1)
+        path2 = self.getCachePath(self.getCurrentCameraName())
+        if osp.exists(path2):
+            self.cachePathBox.setText.setText(path2)
+        
     def addLayers(self):
         for layer in PlayListUtils.getDisplayLayers():
             btn = QCheckBox(layer.name(), self)
@@ -294,9 +303,12 @@ class ShotForm(Form1, Base1):
             btn = QCheckBox(obj, self)
             self.objectsLayout.addWidget(btn)
             self.objectButtons.append(btn)
+            
+    def getCurrentCameraName(self):
+        return self.cameraBox.currentText().replace(':', '_').replace('|', '_')
 
     def fillName(self):
-        self.nameBox.setText(self.cameraBox.currentText().replace(':', '_').replace('|', '_'))
+        self.nameBox.setText(self.getCurrentCameraName())
         
     def cacheBrowseFolder(self):
         path = self.browseFolder()
@@ -317,11 +329,12 @@ class ShotForm(Form1, Base1):
         return path
 
     def handleCameraBox(self, camera):
-        camera = str(camera)
+        camera = str(camera) # camera index in combobox
         if self.keyFrameButton.isChecked():
             self.startFrame, self.endFrame = self.getKeyFrame()
             self.startFrameBox.setValue(self.startFrame)
             self.endFrameBox.setValue(self.endFrame)
+        self.fillPathBoxes()
 
     def addCameras(self):
         cams = pc.ls(type='camera')
@@ -448,23 +461,37 @@ class ShotForm(Form1, Base1):
             pathName = name.split(':')[-1].split('|')[-1]
             cam = pc.PyNode(name)
             start, end = self.getKeyFrame(cam)
-            prefixPath = str(self.parentWin.pathBox.text())
+            prefixPath = self.getSeqPath()
             if not osp.exists(prefixPath):
                 showMessage(self, title='Error', msg='Sequence path does not exist',
                             icon=QMessageBox.Information)
                 self.progressBar.hide()
                 return
-            prefixPath = osp.join(prefixPath, 'SHOTS')
-            shotPath = osp.join(prefixPath, pathName)
-            animPath = osp.join(shotPath, 'animation')
-            playblastPath = osp.join(animPath, 'preview')
-            cachePath = osp.join(animPath, 'cache')
+            playblastPath = self.getPlayblastPath(pathName)
+            cachePath = self.getCachePath(pathName)
             self.create(name, cam, start, end, playblastPath, cachePath)
             self.progressBar.setValue(i+1)
             qApp.processEvents()
         self.progressBar.hide()
         self.progressBar.setValue(0)
         self.accept()
+        
+    def getSeqPath(self):
+        return str(self.parentWin.pathBox.text())
+        
+    def getBasePath(self, cameraName):
+        prefix = self.getSeqPath()
+        prefixPath = osp.join(prefix, 'SHOTS')
+        shotPath = osp.join(prefixPath, cameraName)
+        return osp.join(shotPath, 'animation')
+        
+    def getCachePath(self, cameraName):
+        animPath = self.getBasePath(cameraName)
+        return osp.join(animPath, 'cache')
+        
+    def getPlayblastPath(self, cameraName):
+        animPath = self.getBasePath(cameraName)
+        return osp.join(animPath, 'preview')
 
     def getSelectedObjects(self):
         objs = []
@@ -551,11 +578,7 @@ class Item(Form2, Base2):
         self.selectButton.clicked.connect(self.parentWin.itemClicked)
         self.selectButton.clicked.connect(self.toggleSelected)
         self.deleteButton.clicked.connect(self.delete)
-        self.browseButton.clicked.connect(self.openLocation)
-        self.browseButton2.clicked.connect(self.openLocation2)
         self.titleFrame.mouseReleaseEvent = self.collapse
-        self.browseButton.hide()
-        self.browseButton2.hide()
         
         self.label.mouseDoubleClickEvent = lambda event: self.openLocation()
         self.label_2.mouseDoubleClickEvent = lambda event: self.openLocation2()
@@ -592,10 +615,20 @@ class Item(Form2, Base2):
 
     def openLocation(self):
         pb = PlayblastExport.getActionFromList(self.pl_item.actions)
+        if not osp.exists(pb.path):
+            showMessage(self.parentWin, title='Path Error',
+                        msg='Path does not exist',
+                        icon=QMessageBox.Information)
+            return
         subprocess.call('explorer %s'%pb.path, shell=True)
 
     def openLocation2(self):
         ce = CacheExport.getActionFromList(self.pl_item.actions)
+        if not osp.exists(ce.path):
+            showMessage(self.parentWin, title='Path Error',
+                        msg='Path does not exist',
+                        icon=QMessageBox.Information)
+            return
         subprocess.call('explorer %s'%ce.path, shell=True)
 
     def delete(self):
