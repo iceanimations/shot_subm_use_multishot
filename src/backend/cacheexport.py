@@ -8,6 +8,8 @@ import shotplaylist
 import pymel.core as pc
 import os.path as osp
 from collections import OrderedDict
+import shutil
+import os
 
 PlayListUtils = shotplaylist.PlaylistUtils
 Action = shotactions.Action
@@ -27,11 +29,8 @@ class CacheExport(Action):
         conf = dict()
         conf["version"] = 5
         conf["time_range_mode"] = 0
-        conf["start_time"] = 0
-        conf["end_time"] = 1
         conf["cache_file_dist"] = "OneFile"
         conf["refresh_during_caching"] = 0
-        conf["cache_dir"] = ''
         conf["cache_per_geo"] = "1"
         conf["cache_name"] = ""
         conf["cache_name_as_prefix"] = 0
@@ -62,8 +61,9 @@ class CacheExport(Action):
             
     def exportCam(self, path):
         path = osp.join(osp.dirname(path), 'camera')
-        path = osp.join(path, self._item.name.split(':')[-1].split('|')[-1]+'_cam')
-        pc.exportSelected(path,
+        itemName = self._item.name.split(':')[-1].split('|')[-1]+'_cam'
+        tempFilePath = osp.join(self.tempPath, itemName)
+        pc.exportSelected(tempFilePath,
                   force=True,
                   expressions = False,
                   constructionHistory = False,
@@ -73,6 +73,12 @@ class CacheExport(Action):
                   options="v=0",
                   typ="mayaAscii",
                   pr = False)
+        try:
+            shutil.copy(tempFilePath, path)
+        except Exception as ex:
+            pc.warning(str(ex))
+        finally:
+            os.remove(tempFilePath)
         
     def getPath(self):
         return self.get('path')
@@ -109,8 +115,20 @@ class CacheExport(Action):
     def exportCache(self, conf):
         pc.select(cl=True)
         if self.get('objects'):
+            path = conf.get('cache_dir')
+            tempFilePath = osp.join(self.tempPath, 'cache')
+            tempFilePath.replace('\\', '/')
+            conf['cache_dir'] = tempFilePath
             command =  'doCreateGeometryCache2 {version} {{ "{time_range_mode}", "{start_time}", "{end_time}", "{cache_file_dist}", "{refresh_during_caching}", "{cache_dir}", "{cache_per_geo}", "{cache_name}", "{cache_name_as_prefix}", "{action_to_perform}", "{force_save}", "{simulation_rate}", "{sample_multiplier}", "{inherit_modf_from_cache}", "{store_doubles_as_float}", "{cache_format}"}};'.format(**conf)
-            print command
             self.MakeMeshes(self.get('objects'))
             pc.Mel.eval(command)
-            
+            try:
+                for phile in os.listdir(tempFilePath):
+                    philePath = osp.join(tempFilePath, phile)
+                    shutil.copy(philePath, path)
+            except Exception as ex:
+                pc.warning(str(ex))
+            finally:
+                for phile in os.listdir(tempFilePath):
+                    philePath = osp.join(tempFilePath, phile)
+                    os.remove(philePath)

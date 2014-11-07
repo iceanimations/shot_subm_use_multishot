@@ -78,6 +78,7 @@ class Action(OrderedDict):
         super(Action, self).__init__(*args, **kwargs)
         if self.enabled is None:
             self.enabled = True
+        self.tempPath = osp.join(osp.expanduser('~'), 'multiShotExport')
 
     def getEnabled(self):
         return self.get('enabled')
