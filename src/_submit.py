@@ -286,7 +286,7 @@ class ShotForm(Form1, Base1):
     def fillPathBoxes(self):
         path1 = self.getPlayblastPath(self.getCurrentCameraName())
         if osp.exists(path1): 
-            self.playblastPathBox(path1)
+            self.playblastPathBox.setText(path1)
         path2 = self.getCachePath(self.getCurrentCameraName())
         if osp.exists(path2):
             self.cachePathBox.setText.setText(path2)

@@ -218,10 +218,11 @@ class PlaylistItem(object):
             raise (pc.MayaNodeError,
                     'Attribute %s Does not exist in scene'%self.__attr.name())
         datastring = self.__attr.get()
-        self.__data=json.loads(datastring)
-        if not self.__data.has_key('actions'):
-            self.__data['actions']={}
-        self.__data['actions'] = actions.ActionList(self)
+        if datastring:
+            self.__data=json.loads(datastring)
+            if not self.__data.has_key('actions'):
+                self.__data['actions']={}
+            self.__data['actions'] = actions.ActionList(self)
 
     def __getPlaylistCodes__(self):
         return self.__data['playlistcodes']
