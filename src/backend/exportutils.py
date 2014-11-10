@@ -40,6 +40,17 @@ def copyFile(src, des):
         pc.warning(str(ex))
     finally:
         os.remove(src)
+        
+def get_next_version_num(path):
+    nums = set()
+    files = os.listdir(path)
+    if files:
+        for phile in files:
+            filePath = osp.join(path, phile)
+            nums.add(int(filePath.split('_')[-1].split('.')[0]))
+        num = max(nums)
+    
+            
 
 def getDefaultResolution():
     node = pc.ls('defaultResolution')[0]
