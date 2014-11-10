@@ -695,13 +695,20 @@ class Item(Form2, Base2):
     def edit(self):
         self.parentWin.editItem(self.pl_item)
 
+class MessageBox(QMessageBox):
+    def __init__(self, parent=None):
+        super(MessageBox, self).__init__(parent)
+    
+    def closeEvent(self, event):
+        print 'object deleted'
+        self.deleteLater()
 
 def showMessage(parent, title = 'Shot Export',
                 msg = 'Message', btns = QMessageBox.Ok,
                 icon = None, ques = None, details = None):
 
     if msg:
-        mBox = QMessageBox(parent)
+        mBox = MessageBox(parent)
         mBox.setWindowTitle(title)
         mBox.setText(msg)
         if ques:
@@ -711,6 +718,6 @@ def showMessage(parent, title = 'Shot Export',
         if details:
             mBox.setDetailedText(details)
         mBox.setStandardButtons(btns)
-        mBox.closeEvent = lambda event: mBox.deleteLater()
+        mBox.closeEvent = lambda event: test() #smBox.deleteLater()
         buttonPressed = mBox.exec_()
         return buttonPressed
