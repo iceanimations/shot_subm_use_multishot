@@ -41,6 +41,18 @@ def copyFile(src, des):
     finally:
         os.remove(src)
 
+def hideFaceUi():
+    sel = pc.ls(sl=True)
+    pc.select(pc.ls(regex='(?i).*:?UI_grp'))
+    pc.Mel.eval('HideSelectedObjects')
+    pc.select(sel)
+    
+def showFaceUi():
+    sel = pc.ls(sl=True)
+    pc.select(pc.ls(regex='(?i).*:?UI_grp'))
+    pc.showHidden(b=True)
+    pc.select(sel)
+
 def getDefaultResolution():
     node = pc.ls('defaultResolution')[0]
     return node.width.get(), node.height.get()
@@ -124,12 +136,16 @@ def turnResolutionGateOn(camera):
         __safeTitle__ = False
         
 def hideShowCurves(flag):
+    sel = pc.ls(sl=True)
     try:
         if flag:
-            pc.hide(pc.ls(type=pc.nt.NurbsCurve))
+            pc.select(pc.ls(type=pc.nt.NurbsCurve))
+            pc.Mel.eval('HideSelectedObjects')
         else:
-            pc.showHidden(pc.ls(type=pc.nt.NurbsCurve))
+            pc.select(pc.ls(type=pc.nt.NurbsCurve))
+            pc.showHidden(b=True)
     except: pass
+    pc.select(sel)
     
 def getAudioNode():
     nodes = pc.ls(type=['audio'])
