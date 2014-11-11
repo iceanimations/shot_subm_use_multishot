@@ -35,7 +35,8 @@ class Submitter(Form, Base):
         super(Submitter, self).__init__(parent)
         self.setupUi(self)
 
-        self.__colors_mapping__ = {'Red': 4, 'Green': 14, 'Yellow': 17}
+        self.__colors_mapping__ = {'Red': 4, 'Green': 14, 'Yellow': 17,
+                                   'Black': 1}
 
         # setting up UI
         self.progressBar.hide()
@@ -190,10 +191,11 @@ class Submitter(Form, Base):
         return item
 
     def setHUDColor(self):
-        color = str(self.colorBox.currentText())
-        if color and color != 'Default':
-            exportutils.setHUDColor(self.__colors_mapping__.get(color),
-                                    self.__colors_mapping__.get(color))
+        #color = str(self.colorBox.currentText())
+        #if color and color != 'Default':
+        color = 'Black'
+        exportutils.setHUDColor(self.__colors_mapping__.get(color),
+                                self.__colors_mapping__.get(color))
 
     def export(self):
         try:
@@ -282,6 +284,34 @@ class ShotForm(Form1, Base1):
         self.playblastBrowseButton.clicked.connect(self.playblastBrowseFolder)
         self.cacheBrowseButton.clicked.connect(self.cacheBrowseFolder)
         self.fillButton.clicked.connect(self.fillName)
+        self.selectAllButton.clicked.connect(self.selectAll)
+        self.selectAllButton2.clicked.connect(self.selectAll2)
+        
+    def selectAll(self):
+        checked = self.selectAllButton.isChecked()
+        for btn in self.layerButtons:
+            btn.setChecked(checked)
+            
+    def selectAll2(self):
+        checked = self.selectAllButton2.isChecked()
+        for btn in self.objectButtons:
+            btn.setChecked(checked)
+            
+    def setSelectAllButton(self):
+        flag = True
+        for btn in self.layerButtons:
+            if not btn.isChecked():
+                flag = False
+                break
+        self.selectAllButton.setChecked(flag)
+        
+    def setSelectAllButton2(self):
+        flag = True
+        for btn in self.objectButtons:
+            if not btn.isChecked():
+                flag = False
+                break
+        self.selectAllButton2.setChecked(flag)
         
     def fillPathBoxes(self):
         path1 = self.getPlayblastPath(self.getCurrentCameraName())
@@ -297,12 +327,14 @@ class ShotForm(Form1, Base1):
             btn.setChecked(layer.visibility.get())
             self.layerLayout.addWidget(btn)
             self.layerButtons.append(btn)
+        map(lambda btn: btn.clicked.connect(self.setSelectAllButton), self.layerButtons)
             
     def addObjects(self):
         for obj in exportutils.getObjects():
             btn = QCheckBox(obj, self)
             self.objectsLayout.addWidget(btn)
             self.objectButtons.append(btn)
+        map(lambda btn: btn.clicked.connect(self.setSelectAllButton2), self.objectButtons)
             
     def getCurrentCameraName(self):
         return self.cameraBox.currentText().replace(':', '_').replace('|', '_')
@@ -700,7 +732,9 @@ class MessageBox(QMessageBox):
         super(MessageBox, self).__init__(parent)
     
     def closeEvent(self, event):
-        print 'object deleted'
+        self.deleteLater()
+        
+    def hideEvent(self, event):
         self.deleteLater()
 
 def showMessage(parent, title = 'Shot Export',
@@ -718,6 +752,5 @@ def showMessage(parent, title = 'Shot Export',
         if details:
             mBox.setDetailedText(details)
         mBox.setStandardButtons(btns)
-        mBox.closeEvent = lambda event: test() #smBox.deleteLater()
         buttonPressed = mBox.exec_()
         return buttonPressed

@@ -40,17 +40,6 @@ def copyFile(src, des):
         pc.warning(str(ex))
     finally:
         os.remove(src)
-        
-def get_next_version_num(path):
-    nums = set()
-    files = os.listdir(path)
-    if files:
-        for phile in files:
-            filePath = osp.join(path, phile)
-            nums.add(int(filePath.split('_')[-1].split('.')[0]))
-        num = max(nums)
-    
-            
 
 def getDefaultResolution():
     node = pc.ls('defaultResolution')[0]
@@ -88,8 +77,8 @@ def showFrameInfo(pl_item):
     def getInOut():
         return inOut
     removeFrameInfo()
-    pc.headsUpDisplay(__hud_frame_1__, lfs='large', label='FPS', section=6, block=pc.headsUpDisplay(nfb=6), blockSize='large', dfs='large', command=getFps)
-    pc.headsUpDisplay(__hud_frame_2__, lfs='large', label='In Out', section=6, block=pc.headsUpDisplay(nfb=6), blockSize='large', dfs='large', command=getInOut)
+    pc.headsUpDisplay(__hud_frame_1__, lfs='large', label='FPS:', section=6, block=pc.headsUpDisplay(nfb=6), blockSize='large', dfs='large', command=getFps)
+    pc.headsUpDisplay(__hud_frame_2__, lfs='large', label='In Out:', section=6, block=pc.headsUpDisplay(nfb=6), blockSize='large', dfs='large', command=getInOut)
     pc.Mel.eval('setCurrentFrameVisibility(1)')
     pc.headsUpDisplay('HUDCurrentFrame', e=True, lfs='large', dfs='large')
     pc.Mel.eval('setFocalLengthVisibility(1)')

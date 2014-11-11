@@ -264,6 +264,9 @@
               <bold>true</bold>
              </font>
             </property>
+            <property name="toolTip">
+             <string>Double click to open</string>
+            </property>
             <property name="text">
              <string>Playblast Path:</string>
             </property>
@@ -284,7 +287,7 @@
              </size>
             </property>
             <property name="toolTip">
-             <string>Path to export shot to</string>
+             <string>Double click to open</string>
             </property>
             <property name="text">
              <string>TextLabel</string>
@@ -316,6 +319,9 @@
               <bold>true</bold>
              </font>
             </property>
+            <property name="toolTip">
+             <string>Double click to open</string>
+            </property>
             <property name="text">
              <string>Cache Path:      </string>
             </property>
@@ -334,6 +340,9 @@
               <width>0</width>
               <height>20</height>
              </size>
+            </property>
+            <property name="toolTip">
+             <string>Double click to open location</string>
             </property>
             <property name="text">
              <string>TextLabel</string>
