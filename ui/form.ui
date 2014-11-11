@@ -265,7 +265,7 @@
    <item>
     <widget class="QTabWidget" name="tabWidget">
      <property name="currentIndex">
-      <number>1</number>
+      <number>0</number>
      </property>
      <widget class="QWidget" name="tab">
       <attribute name="title">
@@ -296,6 +296,13 @@
         </widget>
        </item>
        <item>
+        <widget class="QCheckBox" name="selectAllButton">
+         <property name="text">
+          <string>Select All</string>
+         </property>
+        </widget>
+       </item>
+       <item>
         <widget class="QScrollArea" name="scrollArea">
          <property name="widgetResizable">
           <bool>true</bool>
@@ -305,8 +312,8 @@
            <rect>
             <x>0</x>
             <y>0</y>
-            <width>334</width>
-            <height>119</height>
+            <width>480</width>
+            <height>198</height>
            </rect>
           </property>
           <layout class="QVBoxLayout" name="verticalLayout_5">
@@ -406,6 +413,13 @@
         </widget>
        </item>
        <item>
+        <widget class="QCheckBox" name="selectAllButton2">
+         <property name="text">
+          <string>Select All</string>
+         </property>
+        </widget>
+       </item>
+       <item>
         <widget class="QScrollArea" name="scrollArea_2">
          <property name="widgetResizable">
           <bool>true</bool>
@@ -416,7 +430,7 @@
             <x>0</x>
             <y>0</y>
             <width>480</width>
-            <height>215</height>
+            <height>198</height>
            </rect>
           </property>
           <layout class="QVBoxLayout" name="verticalLayout_8">

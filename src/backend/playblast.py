@@ -179,7 +179,7 @@ class PlayblastExport(Action):
             if not sound:
                 sound = ['']
         else: sound=['']
-        itemName = item.name.replace(':', '_').replace('|', '_')
+        itemName = item.name.split(':')[-1].split('|')[-1]
         tempFilePath = osp.join(self.tempPath, itemName)
         pc.playblast(format='qt', fo=1, st=item.getInFrame(), et=item.getOutFrame(),
                      f=tempFilePath,

@@ -40,17 +40,18 @@ def copyFile(src, des):
         pc.warning(str(ex))
     finally:
         os.remove(src)
-        
-def get_next_version_num(path):
-    nums = set()
-    files = os.listdir(path)
-    if files:
-        for phile in files:
-            filePath = osp.join(path, phile)
-            nums.add(int(filePath.split('_')[-1].split('.')[0]))
-        num = max(nums)
+
+def hideFaceUi():
+    sel = pc.ls(sl=True)
+    pc.select(pc.ls(regex='(?i).*:?UI_grp'))
+    pc.Mel.eval('HideSelectedObjects')
+    pc.select(sel)
     
-            
+def showFaceUi():
+    sel = pc.ls(sl=True)
+    pc.select(pc.ls(regex='(?i).*:?UI_grp'))
+    pc.showHidden(b=True)
+    pc.select(sel)
 
 def getDefaultResolution():
     node = pc.ls('defaultResolution')[0]
@@ -92,8 +93,8 @@ def showFrameInfo(pl_item):
     def getInOut():
         return inOut
     removeFrameInfo()
-    pc.headsUpDisplay(__hud_frame_1__, lfs='large', label='FPS', section=6, block=pc.headsUpDisplay(nfb=6), blockSize='large', dfs='large', command=getFps)
-    pc.headsUpDisplay(__hud_frame_2__, lfs='large', label='In Out', section=6, block=pc.headsUpDisplay(nfb=6), blockSize='large', dfs='large', command=getInOut)
+    pc.headsUpDisplay(__hud_frame_1__, lfs='large', label='FPS:', section=6, block=pc.headsUpDisplay(nfb=6), blockSize='large', dfs='large', command=getFps)
+    pc.headsUpDisplay(__hud_frame_2__, lfs='large', label='In Out:', section=6, block=pc.headsUpDisplay(nfb=6), blockSize='large', dfs='large', command=getInOut)
     pc.Mel.eval('setCurrentFrameVisibility(1)')
     pc.headsUpDisplay('HUDCurrentFrame', e=True, lfs='large', dfs='large')
     pc.Mel.eval('setFocalLengthVisibility(1)')
@@ -139,10 +140,16 @@ def turnResolutionGateOn(camera):
         __safeTitle__ = False
         
 def hideShowCurves(flag):
-    if flag:
-        pc.hide(pc.ls(type=pc.nt.NurbsCurve))
-    else:
-        pc.showHidden(pc.ls(type=pc.nt.NurbsCurve))
+    sel = pc.ls(sl=True)
+    try:
+        if flag:
+            pc.select(pc.ls(type=pc.nt.NurbsCurve))
+            pc.Mel.eval('HideSelectedObjects')
+        else:
+            pc.select(pc.ls(type=pc.nt.NurbsCurve))
+            pc.showHidden(b=True)
+    except: pass
+    pc.select(sel)
     
 def getAudioNode():
     nodes = pc.ls(type=['audio'])

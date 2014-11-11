@@ -225,6 +225,9 @@ padding-bottom: 1px;</string>
       </item>
       <item>
        <widget class="QComboBox" name="colorBox">
+        <property name="enabled">
+         <bool>false</bool>
+        </property>
         <item>
          <property name="text">
           <string>Default</string>

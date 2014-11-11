@@ -64,7 +64,7 @@ class CacheExport(Action):
         path = osp.join(osp.dirname(path), 'camera')
         itemName = self._item.name.split(':')[-1].split('|')[-1]+'_cam'
         tempFilePath = osp.join(self.tempPath, itemName)
-        pc.exportSelected(tempFilePath,
+        tempFilePath = pc.exportSelected(tempFilePath,
                   force=True,
                   expressions = False,
                   constructionHistory = False,
@@ -74,7 +74,6 @@ class CacheExport(Action):
                   options="v=0",
                   typ="mayaAscii",
                   pr = False)
-        tempFilePath += '.ma'
         exportutils.copyFile(tempFilePath, path)
         
     def getPath(self):
