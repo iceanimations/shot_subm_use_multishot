@@ -83,7 +83,7 @@ class CacheExport(Action):
     path = property(getPath, setPath)
     
     def getObjects(self):
-        return [pc.PyNode(obj) for obj in self.get('objects')]
+        return [pc.PyNode(obj) for obj in self.get('objects') if pc.objExists(obj)]
     def addObjects(self, objects):
         self['objects'][:] = objects
     objects = property(getObjects, addObjects)
