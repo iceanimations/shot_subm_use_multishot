@@ -56,8 +56,9 @@ def showNameLabel():
         pc.headsUpDisplay(__HUD_LABEL__, remove=True) 
     pc.headsUpDisplay(__HUD_LABEL__, section=2, block=0, blockSize="large", dfs="large", command=label)
     if (pc.headsUpDisplay(__HUD_USERNAME__, q=True, exists=True)):
-        pc.headsUpDisplay(__HUD_USERNAME__, remove=True) 
+        pc.headsUpDisplay(__HUD_USERNAME__, remove=True)
     pc.headsUpDisplay(__HUD_USERNAME__, section=3, block=0, blockSize="large", dfs="large", command=getUsername)
+    pc.headsUpDisplay(__HUD_USERNAME__, e=True, dfs='large')
 
 def showDate():
     global __HUD_DATE__
