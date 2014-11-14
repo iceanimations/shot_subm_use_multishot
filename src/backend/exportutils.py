@@ -29,7 +29,8 @@ __fps_mapping__ = {
                    }
 
 def copyFile(src, des):
-    src = src.replace('/', '\\\\')
+    src = osp.normpath(src)
+    des = osp.normpath(des)
     try:
         existingFile = osp.join(des, osp.basename(src))
         if osp.exists(existingFile):
