@@ -193,7 +193,7 @@ class Submitter(Form, Base):
     def setHUDColor(self):
         #color = str(self.colorBox.currentText())
         #if color and color != 'Default':
-        color = 'Black'
+        color = 'Green'
         exportutils.setHUDColor(self.__colors_mapping__.get(color),
                                 self.__colors_mapping__.get(color))
 
