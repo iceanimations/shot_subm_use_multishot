@@ -516,7 +516,7 @@ class ShotForm(Form1, Base1):
     def getBasePath(self, cameraName):
         prefix = self.getSeqPath()
         prefixPath = osp.join(prefix, 'SHOTS')
-        shotPath = osp.join(prefixPath, cameraName)
+        shotPath = osp.join(prefixPath, str(cameraName))
         return osp.join(shotPath, 'animation')
         
     def getCachePath(self, cameraName):
@@ -585,10 +585,10 @@ class ShotForm(Form1, Base1):
 Form2, Base2 = uic.loadUiType(osp.join(ui_path, 'item.ui'))
 class Item(Form2, Base2):
     version = int(re.search('\\d{4}', pc.about(v=True)).group())
-    if version < 2014:
-        clicked = QtCore.pyqtSignal()
-    else:
-        clicked = QtCore.Signal()
+    #if version == 2014:
+    clicked = QtCore.pyqtSignal()
+    #else:
+    #clicked = QtCore.Signal()
 
     pl_item=None
 
