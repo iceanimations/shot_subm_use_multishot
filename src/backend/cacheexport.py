@@ -6,6 +6,7 @@ contains class to export cache of the selected objects (meshes)
 import shotactions
 import shotplaylist
 import pymel.core as pc
+import maya.cmds as cmds
 import os.path as osp
 from collections import OrderedDict
 import shutil
@@ -61,9 +62,11 @@ class CacheExport(Action):
             self.exportCam(self.path)
             
     def exportCam(self, path):
+        location = osp.splitext(cmds.file(q=True, location=True))
         path = osp.join(osp.dirname(path), 'camera')
         itemName = self._item.name.split(':')[-1].split('|')[-1]+'_cam'
         tempFilePath = osp.join(self.tempPath, itemName)
+        
         tempFilePath = pc.exportSelected(tempFilePath,
                   force=True,
                   expressions = False,
@@ -72,7 +75,7 @@ class CacheExport(Action):
                   shader = False,
                   constraints = False,
                   options="v=0",
-                  typ="mayaAscii",
+                  typ=cmds.file(q=True, type=True)[0],
                   pr = False)
         exportutils.copyFile(tempFilePath, path)
         
