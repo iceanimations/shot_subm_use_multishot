@@ -196,8 +196,36 @@ class Submitter(Form, Base):
         color = 'Green'
         exportutils.setHUDColor(self.__colors_mapping__.get(color),
                                 self.__colors_mapping__.get(color))
+        
+    def isItemSelected(self):
+        selected = False
+        for item in self._playlist.getItems():
+            if item.selected:
+                selected = True
+                break
+        return selected
+        
+    def isActionEnabled(self):
+        enabled = False
+        for item in self._playlist.getItems():
+            if item.selected:
+                for action in item.actions.getActions():
+                    if action.enabled:
+                        enabled = True
+                        break
+        return enabled
 
     def export(self):
+        if not self.isItemSelected():
+            showMessage(self, title='No selection',
+                        msg='No shot selected to export',
+                        icon=QMessageBox.Information)
+            return
+        if not self.isActionEnabled():
+            showMessage(self, title='No Action',
+                        msg='No action enabled for selected shots',
+                        icon=QMessageBox.Information)
+            return
         try:
             self.exportButton.setEnabled(False)
             self.closeButton.setEnabled(False)
@@ -218,12 +246,15 @@ class Submitter(Form, Base):
             qApp.processEvents()
             count = 1
             for pl_item in self._playlist.getItems():
-                if pl_item.selected:
-                    qApp.processEvents()
-                    pl_item.actions.perform(sound=self.audioButton.isChecked())
-                    self.progressBar.setValue(count)
-                    qApp.processEvents()
-                    count += 1
+                try:
+                    if pl_item.selected:
+                        qApp.processEvents()
+                        pl_item.actions.perform(sound=self.audioButton.isChecked())
+                        self.progressBar.setValue(count)
+                        qApp.processEvents()
+                        count += 1
+                except Exception as ex:
+                    errors[pl_item.name] = str(ex)
             temp = ' shots ' if len(errors) > 1 else ' shot '
             if errors:
                 detail = ''
