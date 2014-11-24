@@ -329,6 +329,7 @@ class ShotForm(Form1, Base1):
             btn.setChecked(layer.visibility.get())
             self.layerLayout.addWidget(btn)
             self.layerButtons.append(btn)
+        self.setSelectAllButton()
         map(lambda btn: btn.clicked.connect(self.setSelectAllButton), self.layerButtons)
             
     def addObjects(self):
@@ -434,10 +435,10 @@ class ShotForm(Form1, Base1):
     def callCreate(self):
         playblastPath = str(self.playblastPathBox.text())
         cachePath = str(self.cachePathBox.text())
-        if not self.playblastEnableButton.isChecked() and not self.cacheEnableButton.isChecked():
-            showMessage(self, title='Shot Export', msg='No action is enabled, enable at least one',
-                        icon=QMessageBox.Warning)
-            return
+#        if not self.playblastEnableButton.isChecked() and not self.cacheEnableButton.isChecked():
+#            showMessage(self, title='Shot Export', msg='No action is enabled, enable at least one',
+#                        icon=QMessageBox.Warning)
+#            return
         
         if self.playblastEnableButton.isChecked():
             if not playblastPath and not self.autoCreate():
