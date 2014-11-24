@@ -329,6 +329,7 @@ class ShotForm(Form1, Base1):
             btn.setChecked(layer.visibility.get())
             self.layerLayout.addWidget(btn)
             self.layerButtons.append(btn)
+        self.setSelectAllButton()
         map(lambda btn: btn.clicked.connect(self.setSelectAllButton), self.layerButtons)
             
     def addObjects(self):
@@ -434,10 +435,10 @@ class ShotForm(Form1, Base1):
     def callCreate(self):
         playblastPath = str(self.playblastPathBox.text())
         cachePath = str(self.cachePathBox.text())
-        if not self.playblastEnableButton.isChecked() and not self.cacheEnableButton.isChecked():
-            showMessage(self, title='Shot Export', msg='No action is enabled, enable at least one',
-                        icon=QMessageBox.Warning)
-            return
+#        if not self.playblastEnableButton.isChecked() and not self.cacheEnableButton.isChecked():
+#            showMessage(self, title='Shot Export', msg='No action is enabled, enable at least one',
+#                        icon=QMessageBox.Warning)
+#            return
         
         if self.playblastEnableButton.isChecked():
             if not playblastPath and not self.autoCreate():
@@ -516,7 +517,7 @@ class ShotForm(Form1, Base1):
     def getBasePath(self, cameraName):
         prefix = self.getSeqPath()
         prefixPath = osp.join(prefix, 'SHOTS')
-        shotPath = osp.join(prefixPath, cameraName)
+        shotPath = osp.join(prefixPath, str(cameraName))
         return osp.join(shotPath, 'animation')
         
     def getCachePath(self, cameraName):
@@ -585,10 +586,10 @@ class ShotForm(Form1, Base1):
 Form2, Base2 = uic.loadUiType(osp.join(ui_path, 'item.ui'))
 class Item(Form2, Base2):
     version = int(re.search('\\d{4}', pc.about(v=True)).group())
-    if version < 2014:
-        clicked = QtCore.pyqtSignal()
-    else:
-        clicked = QtCore.Signal()
+    #if version == 2014:
+    clicked = QtCore.pyqtSignal()
+    #else:
+    #clicked = QtCore.Signal()
 
     pl_item=None
 
