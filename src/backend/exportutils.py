@@ -91,13 +91,13 @@ def showFrameInfo(pl_item):
         return inOut
     removeFrameInfo()
     pc.headsUpDisplay(__hud_frame_1__, lfs='large', label='FPS:', section=6, block=pc.headsUpDisplay(nfb=6), blockSize='large', dfs='large', command=getFps)
-    pc.headsUpDisplay(__hud_frame_2__, lfs='large', label='In Out:', section=6, block=pc.headsUpDisplay(nfb=6), blockSize='large', dfs='large', command=getInOut)
+    pc.headsUpDisplay(__hud_frame_2__, lfs='large', label='IN OUT:', section=6, block=pc.headsUpDisplay(nfb=6), blockSize='large', dfs='large', command=getInOut)
     pc.Mel.eval('setCurrentFrameVisibility(1)')
-    pc.headsUpDisplay('HUDCurrentFrame', e=True, lfs='large', dfs='large')
+    pc.headsUpDisplay('HUDCurrentFrame', e=True, lfs='large', dfs='large', bs='large')
     pc.Mel.eval('setFocalLengthVisibility(1)')
-    pc.headsUpDisplay('HUDFocalLength', e=True, lfs='large', dfs='large')
+    pc.headsUpDisplay('HUDFocalLength', e=True, lfs='large', dfs='large', bs='large')
     pc.Mel.eval('setCameraNamesVisibility(1)')
-    pc.headsUpDisplay('HUDCameraNames', e=True, lfs='large', dfs='large')
+    pc.headsUpDisplay('HUDCameraNames', e=True, lfs='large', dfs='large', bs='large')
     
 def removeFrameInfo():
     if pc.headsUpDisplay(__hud_frame_1__, exists=True):

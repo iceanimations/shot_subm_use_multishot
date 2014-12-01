@@ -24,10 +24,10 @@ def playblast(data):
                  showOrnaments=True, fp=4, offScreen=True)
 
 def getUsername():
-    return os.environ.get('USERNAME')
+    return os.environ.get('USERNAME').upper().replace('.', ' ')
 
 def label():
-    return 'ICE Animations'
+    return 'ICE ANIMATIONS'
 
 def recordCurrentFrame():
     global __CURRENT_FRAME__
