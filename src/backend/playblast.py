@@ -9,6 +9,8 @@ import os.path as osp
 import exportutils
 import shutil
 
+from PyQt4.QtGui import qApp
+
 
 
 __poly_count__ = False
@@ -132,6 +134,8 @@ class PlayblastExport(Action):
             showNameLabel()
             exportutils.turnResolutionGateOff(item.camera)
             exportutils.showFrameInfo(item)
+            
+            qApp.processEvents()
             
             self.makePlayblast(sound=kwargs.get('sound'))
             
