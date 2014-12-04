@@ -12,9 +12,10 @@ import time
 __original_camera__ = None
 __original_frame__ = None
 __selection__ = None
-__resolutionGate__ = False
-__safeAction__ = False
-__safeTitle__ = False
+__resolutionGate__ = True
+__safeAction__ = True
+__safeTitle__ = True
+__resolutionGateMask__ = True
 __hud_frame_1__ = '__hud_frame_1__'
 __hud_frame_2__ = '__hud_frame_2__'
 __labelColor__ = None
@@ -112,33 +113,40 @@ def removeFrameInfo():
     pc.Mel.eval('setFocalLengthVisibility(`optionVar -q focalLengthVisibility`)')
     pc.Mel.eval('setCameraNamesVisibility(`optionVar -q focalLengthVisibility`)')
 
-def turnResolutionGateOff(camera):
-    global __resolutionGate__
-    global __safeAction__
-    global __safeTitle__
-    if pc.camera(camera, q=True, displayResolution=True):
-        __resolutionGate__ = True
-    if pc.camera(camera, q=True, displaySafeAction=True):
-        __safeAction__ = True
-    if pc.camera(camera, q=True, displaySafeTitle=True):
-        __safeTitle__ = True
-    pc.camera(camera, e=True, displayResolution=False, overscan=1.0)
-    pc.camera(camera, e=True, displaySafeAction=False, overscan=1.0)
-    pc.camera(camera, e=True, displaySafeTitle=False, overscan=1.0)
-
 def turnResolutionGateOn(camera):
     global __resolutionGate__
     global __safeAction__
     global __safeTitle__
-    if __resolutionGate__:
-        pc.camera(camera, e=True, displayResolution=True, overscan=1.3)
+    global __resolutionGateMask__
+    if not pc.camera(camera, q=True, displayResolution=True):
         __resolutionGate__ = False
-    if __safeAction__:
-        pc.camera(camera, e=True, displaySafeAction=True, overscan=1.3)
+        pc.camera(camera, e=True, displayResolution=True, overscan=1.3)
+    if pc.camera(camera, q=True, displaySafeAction=True):
         __safeAction__ = False
-    if __safeTitle__:
-        pc.camera(camera, e=True, displaySafeTitle=True, overscan=1.3)
+        pc.camera(camera, e=True, displaySafeAction=False, overscan=1.3)
+    if pc.camera(camera, q=True, displaySafeTitle=True):
         __safeTitle__ = False
+        pc.camera(camera, e=True, displaySafeTitle=False, overscan=1.3)
+    if not pc.camera(camera, q=True, dgm=True):
+        __resolutionGateMask__ = False
+        pc.camera(camera, e=True, dgm=True, overscan=1.3)
+
+def turnResolutionGateOff(camera):
+    global __resolutionGate__
+    global __safeAction__
+    global __safeTitle__
+    global __resolutionGateMask__
+    if not __resolutionGate__:
+        pc.camera(camera, e=True, displayResolution=False, overscan=1.0)
+        __resolutionGate__ = True
+    if not __safeAction__:
+        pc.camera(camera, e=True, displaySafeAction=True, overscan=1.0)
+        __safeAction__ = True
+    if not __safeTitle__:
+        pc.camera(camera, e=True, displaySafeTitle=True, overscan=1.0)
+        __safeTitle__ = True
+    if not __resolutionGateMask__:
+        pc.camera(camera, e=True, dgm=False, overscan=1.0)
         
 def hideShowCurves(flag):
     sel = pc.ls(sl=True)

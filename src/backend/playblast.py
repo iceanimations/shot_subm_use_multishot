@@ -132,8 +132,7 @@ class PlayblastExport(Action):
             pc.lookThru(item.camera)
             hidePolyCount()
             showDate()
-            showNameLabel()
-            exportutils.turnResolutionGateOff(item.camera)
+            exportutils.turnResolutionGateOn(item.camera)
             exportutils.showFrameInfo(item)
             
             qApp.processEvents()
@@ -142,9 +141,8 @@ class PlayblastExport(Action):
             
             exportutils.removeFrameInfo()
             removeDate()
-            removeNameLabel()
             showPolyCount()
-            exportutils.turnResolutionGateOn(item.camera)
+            exportutils.turnResolutionGateOff(item.camera)
         
     def addLayers(self, layers):
         self['layers'][:] = layers

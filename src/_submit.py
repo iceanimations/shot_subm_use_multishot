@@ -241,6 +241,7 @@ class Submitter(Form, Base):
             exportutils.hideShowCurves(True)
             exportutils.hideFaceUi()
             self.setHUDColor()
+            backend.playblast.showNameLabel()
             errors = {}
             self.progressBar.setValue(0)
             qApp.processEvents()
@@ -275,6 +276,7 @@ class Submitter(Form, Base):
             exportutils.restoreHUDColor()
             exportutils.hideShowCurves(False)
             exportutils.showFaceUi()
+            backend.playblast.removeNameLabel()
             self.exportButton.setEnabled(True)
             self.closeButton.setEnabled(True)
 
