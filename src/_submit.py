@@ -61,6 +61,10 @@ class Submitter(Form, Base):
                                              (str(self.searchBox.text())))
         self.exportButton.clicked.connect(self.export)
         self.browseButton.clicked.connect(self.browseFolder)
+        self.cacheEnableAction.triggered.connect(self.enableCacheSelected)
+        self.cacheDisableAction.triggered.connect(self.disableCacheSelected)
+        self.playblastEnableAction.triggered.connect(self.enablePlayblastSelected)
+        self.playblastDisableAction.triggered.connect(self.disablePlayblastSelected)
 
         # Populating Items
         self._playlist = Playlist()
@@ -68,6 +72,30 @@ class Submitter(Form, Base):
         self.populate()
 
         appUsageApp.updateDatabase('shot_subm')
+        
+    def enableCacheSelected(self):
+        for item in self._playlist.getItems():
+            if item.selected:
+                CacheExport.getActionFromList(item.actions).enabled = True
+                item.saveToScene()
+    
+    def disableCacheSelected(self):
+        for item in self._playlist.getItems():
+            if item.selected:
+                CacheExport.getActionFromList(item.actions).enabled = False
+                item.saveToScene()
+    
+    def enablePlayblastSelected(self):
+        for item in self._playlist.getItems():
+            if item.selected:
+                PlayblastExport.getActionFromList(item.actions).enabled = True
+                item.saveToScene()
+    
+    def disablePlayblastSelected(self):
+        for item in self._playlist.getItems():
+            if item.selected:
+                PlayblastExport.getActionFromList(item.actions).enabled = False
+                item.saveToScene()
         
     def browseFolder(self):
         path = QFileDialog.getExistingDirectory(self, 'Select Folder', '')
