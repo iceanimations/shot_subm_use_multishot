@@ -206,14 +206,18 @@ class Submitter(Form, Base):
         return selected
         
     def isActionEnabled(self):
-        enabled = False
+        shots = []
         for item in self._playlist.getItems():
             if item.selected:
+                enabled = False
                 for action in item.actions.getActions():
                     if action.enabled:
                         enabled = True
                         break
-        return enabled
+                if not enabled:
+                    shots.append(item.name)
+        return shots
+        
 
     def export(self):
         if not self.isItemSelected():
@@ -221,9 +225,17 @@ class Submitter(Form, Base):
                         msg='No shot selected to export',
                         icon=QMessageBox.Information)
             return
-        if not self.isActionEnabled():
+        badShots = self.isActionEnabled()
+        print badShots
+        if badShots:
+            numShots = len(badShots)
+            s = 's' if numShots > 1 else ''
+            detail = ''
+            for i, shot in enumerate(badShots):
+                detail += str(i+1) +' - '+ shot + '\n\n'
             showMessage(self, title='No Action',
-                        msg='No action enabled for selected shots',
+                        msg=str(numShots) +' shot'+ s +' selected, but no action enabled',
+                        details = detail,
                         icon=QMessageBox.Information)
             return
         try:
