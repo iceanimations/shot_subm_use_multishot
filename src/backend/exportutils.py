@@ -114,22 +114,23 @@ def removeFrameInfo():
     pc.Mel.eval('setCameraNamesVisibility(`optionVar -q focalLengthVisibility`)')
 
 def turnResolutionGateOn(camera):
+    oscan = 1.4
     global __resolutionGate__
     global __safeAction__
     global __safeTitle__
     global __resolutionGateMask__
     if not pc.camera(camera, q=True, displayResolution=True):
         __resolutionGate__ = False
-        pc.camera(camera, e=True, displayResolution=True, overscan=1.3)
+        pc.camera(camera, e=True, displayResolution=True, overscan=oscan)
     if pc.camera(camera, q=True, displaySafeAction=True):
         __safeAction__ = False
-        pc.camera(camera, e=True, displaySafeAction=False, overscan=1.3)
+        pc.camera(camera, e=True, displaySafeAction=False, overscan=oscan)
     if pc.camera(camera, q=True, displaySafeTitle=True):
         __safeTitle__ = False
-        pc.camera(camera, e=True, displaySafeTitle=False, overscan=1.3)
+        pc.camera(camera, e=True, displaySafeTitle=False, overscan=oscan)
     if not pc.camera(camera, q=True, dgm=True):
         __resolutionGateMask__ = False
-        pc.camera(camera, e=True, dgm=True, overscan=1.3)
+        pc.camera(camera, e=True, dgm=True, overscan=oscan)
 
 def turnResolutionGateOff(camera):
     global __resolutionGate__

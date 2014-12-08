@@ -226,7 +226,6 @@ class Submitter(Form, Base):
                         icon=QMessageBox.Information)
             return
         badShots = self.isActionEnabled()
-        print badShots
         if badShots:
             numShots = len(badShots)
             s = 's' if numShots > 1 else ''
