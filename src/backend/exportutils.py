@@ -8,6 +8,9 @@ import os
 osp = os.path
 import shutil
 import time
+import qutil
+
+errorsList = []
 
 __original_camera__ = None
 __original_frame__ = None
@@ -29,6 +32,10 @@ __fps_mapping__ = {
                    'sec': 'seconds', 'min': 'minutes', 'hour': 'hours'
                    }
 
+home = osp.join(osp.expanduser('~'), 'temp_shots_export')
+if not osp.exists(home):
+    os.mkdir(home)
+
 def copyFile(src, des):
     src = osp.normpath(src)
     des = osp.normpath(des)
@@ -39,7 +46,18 @@ def copyFile(src, des):
             os.remove(existingFile)
         shutil.copy(src, des)
     except Exception as ex:
-        pc.warning(str(ex))
+        try:
+            basename3 = qutil.basename3(des)
+            tempPath = osp.join(home, basename3)
+            if not osp.exists(tempPath):
+                qutil.mkdir(home, basename3)
+            tempPath2 = osp.join(tempPath, osp.basename(src))
+            if osp.exists(tempPath2):
+                os.remove(tempPath2)
+            shutil.copy(src, tempPath)
+        except Exception, ex2:
+            pc.warning(ex2)
+        errorsList.append(str(ex))
     finally:
         os.remove(src)
 

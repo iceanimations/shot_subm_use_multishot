@@ -9,7 +9,7 @@ import os.path as osp
 import exportutils
 import shutil
 
-from PyQt4.QtGui import qApp
+from exceptions import *
 
 
 
@@ -133,8 +133,6 @@ class PlayblastExport(Action):
             showDate()
             exportutils.turnResolutionGateOn(item.camera)
             exportutils.showFrameInfo(item)
-            
-            qApp.processEvents()
             
             self.makePlayblast(sound=kwargs.get('sound'))
             

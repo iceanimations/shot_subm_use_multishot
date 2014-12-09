@@ -3,12 +3,12 @@ Created on Sep 1, 2014
 
 @author: Qurban Ali
 '''
-import site
-site.addsitedir(r'R:\Pipe_Repo\Users\Qurban\utilities')
 from uiContainer import uic
 from PyQt4.QtGui import QIcon, QMessageBox, QFileDialog, qApp, QCheckBox
 from PyQt4 import QtCore
+import os
 import os.path as osp
+import shutil
 import qtify_maya_window as qtfy
 import pymel.core as pc
 import re
@@ -266,6 +266,11 @@ class Submitter(Form, Base):
                         icon=QMessageBox.Information)
             return
         try:
+            for directory in os.listdir(exportutils.home):
+                    shutil.rmtree(osp.join(exportutils.home, directory))
+        except Exception, ex:
+            pass
+        try:
             self.exportButton.setEnabled(False)
             self.closeButton.setEnabled(False)
             self.progressBar.show()
@@ -318,6 +323,17 @@ class Submitter(Form, Base):
             backend.playblast.removeNameLabel()
             self.exportButton.setEnabled(True)
             self.closeButton.setEnabled(True)
+
+        if exportutils.errorsList:
+            detail = ''
+            for error in exportutils.errorsList:
+                detail += error +'\n\n'
+            showMessage(self, title='Error',
+                        msg='Unable to copy files to destination\n'+
+                        'your files copied to: '+ exportutils.home,
+                        details=detail,
+                        icon=QMessageBox.Warning)
+            exportutils.errorsList[:] = []
 
     def getPlaylist(self):
         return self._playlist
