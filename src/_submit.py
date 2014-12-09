@@ -75,7 +75,7 @@ class Submitter(Form, Base):
 
         appUsageApp.updateDatabase('shot_subm')
         
-    def sceneBreakdown(*args):
+    def sceneBreakdown(self):
         # get the user
         import login
         import auth.user as user
@@ -86,7 +86,7 @@ class Submitter(Form, Base):
     
         import breakdown
         reload(breakdown)
-        win =  breakdown.Breakdown()
+        win =  breakdown.Breakdown(self)
         win.show()
         
     def enableCacheSelected(self):
