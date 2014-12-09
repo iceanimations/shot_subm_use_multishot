@@ -111,7 +111,7 @@ padding-bottom: 1px;</string>
          <x>0</x>
          <y>0</y>
          <width>487</width>
-         <height>596</height>
+         <height>574</height>
         </rect>
        </property>
        <layout class="QVBoxLayout" name="verticalLayout_4">
@@ -322,6 +322,46 @@ padding-bottom: 1px;</string>
     </item>
    </layout>
   </widget>
+  <widget class="QMenuBar" name="menuBar">
+   <property name="geometry">
+    <rect>
+     <x>0</x>
+     <y>0</y>
+     <width>507</width>
+     <height>22</height>
+    </rect>
+   </property>
+   <widget class="QMenu" name="menuOptions">
+    <property name="title">
+     <string>Options</string>
+    </property>
+    <addaction name="cacheEnableAction"/>
+    <addaction name="cacheDisableAction"/>
+    <addaction name="playblastEnableAction"/>
+    <addaction name="playblastDisableAction"/>
+   </widget>
+   <addaction name="menuOptions"/>
+  </widget>
+  <action name="cacheEnableAction">
+   <property name="text">
+    <string>Enable Cache for selected</string>
+   </property>
+  </action>
+  <action name="cacheDisableAction">
+   <property name="text">
+    <string>Disable Cache for selected</string>
+   </property>
+  </action>
+  <action name="playblastEnableAction">
+   <property name="text">
+    <string>Enable Playblast for selected</string>
+   </property>
+  </action>
+  <action name="playblastDisableAction">
+   <property name="text">
+    <string>Disable Playblast for selected</string>
+   </property>
+  </action>
  </widget>
  <tabstops>
   <tabstop>selectAllButton</tabstop>

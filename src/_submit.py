@@ -3,12 +3,12 @@ Created on Sep 1, 2014
 
 @author: Qurban Ali
 '''
-import site
-site.addsitedir(r'R:\Pipe_Repo\Users\Qurban\utilities')
 from uiContainer import uic
 from PyQt4.QtGui import QIcon, QMessageBox, QFileDialog, qApp, QCheckBox
 from PyQt4 import QtCore
+import os
 import os.path as osp
+import shutil
 import qtify_maya_window as qtfy
 import pymel.core as pc
 import re
@@ -61,6 +61,10 @@ class Submitter(Form, Base):
                                              (str(self.searchBox.text())))
         self.exportButton.clicked.connect(self.export)
         self.browseButton.clicked.connect(self.browseFolder)
+        self.cacheEnableAction.triggered.connect(self.enableCacheSelected)
+        self.cacheDisableAction.triggered.connect(self.disableCacheSelected)
+        self.playblastEnableAction.triggered.connect(self.enablePlayblastSelected)
+        self.playblastDisableAction.triggered.connect(self.disablePlayblastSelected)
 
         # Populating Items
         self._playlist = Playlist()
@@ -68,6 +72,30 @@ class Submitter(Form, Base):
         self.populate()
 
         appUsageApp.updateDatabase('shot_subm')
+        
+    def enableCacheSelected(self):
+        for item in self._playlist.getItems():
+            if item.selected:
+                CacheExport.getActionFromList(item.actions).enabled = True
+                item.saveToScene()
+    
+    def disableCacheSelected(self):
+        for item in self._playlist.getItems():
+            if item.selected:
+                CacheExport.getActionFromList(item.actions).enabled = False
+                item.saveToScene()
+    
+    def enablePlayblastSelected(self):
+        for item in self._playlist.getItems():
+            if item.selected:
+                PlayblastExport.getActionFromList(item.actions).enabled = True
+                item.saveToScene()
+    
+    def disablePlayblastSelected(self):
+        for item in self._playlist.getItems():
+            if item.selected:
+                PlayblastExport.getActionFromList(item.actions).enabled = False
+                item.saveToScene()
         
     def browseFolder(self):
         path = QFileDialog.getExistingDirectory(self, 'Select Folder', '')
@@ -238,6 +266,11 @@ class Submitter(Form, Base):
                         icon=QMessageBox.Information)
             return
         try:
+            for directory in os.listdir(exportutils.home):
+                    shutil.rmtree(osp.join(exportutils.home, directory))
+        except Exception, ex:
+            pass
+        try:
             self.exportButton.setEnabled(False)
             self.closeButton.setEnabled(False)
             self.progressBar.show()
@@ -290,6 +323,17 @@ class Submitter(Form, Base):
             backend.playblast.removeNameLabel()
             self.exportButton.setEnabled(True)
             self.closeButton.setEnabled(True)
+
+        if exportutils.errorsList:
+            detail = ''
+            for error in exportutils.errorsList:
+                detail += error +'\n\n'
+            showMessage(self, title='Error',
+                        msg='Unable to copy files to destination\n'+
+                        'your files copied to: '+ exportutils.home,
+                        details=detail,
+                        icon=QMessageBox.Warning)
+            exportutils.errorsList[:] = []
 
     def getPlaylist(self):
         return self._playlist
