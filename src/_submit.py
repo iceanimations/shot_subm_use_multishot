@@ -45,6 +45,7 @@ class Submitter(Form, Base):
         self.collapseButton.setIcon(QIcon(osp.join(icon_path,
                                                    'ic_toggle_collapse')))
         self.deleteSelectedButton.setIcon(QIcon(osp.join(icon_path, 'ic_delete.png')))
+        self.sceneBreakdownButton.setIcon(QIcon(osp.join(icon_path, 'ic_update.png')))
         search_ic_path = osp.join(icon_path, 'ic_search.png').replace('\\','/')
         style_sheet = ('\nbackground-image: url(%s);'+
                        '\nbackground-repeat: no-repeat;'+
@@ -65,6 +66,7 @@ class Submitter(Form, Base):
         self.cacheDisableAction.triggered.connect(self.disableCacheSelected)
         self.playblastEnableAction.triggered.connect(self.enablePlayblastSelected)
         self.playblastDisableAction.triggered.connect(self.disablePlayblastSelected)
+        self.sceneBreakdownButton.clicked.connect(self.sceneBreakdown)
 
         # Populating Items
         self._playlist = Playlist()
@@ -72,6 +74,20 @@ class Submitter(Form, Base):
         self.populate()
 
         appUsageApp.updateDatabase('shot_subm')
+        
+    def sceneBreakdown(*args):
+        # get the user
+        import login
+        import auth.user as user
+    
+        if not user.user_registered():
+            if not login.Dialog().exec_():
+                return
+    
+        import breakdown
+        reload(breakdown)
+        win =  breakdown.Breakdown()
+        win.show()
         
     def enableCacheSelected(self):
         for item in self._playlist.getItems():
