@@ -374,22 +374,28 @@ class ShotForm(Form1, Base1):
         super(ShotForm, self).__init__(parent)
         self.setupUi(self)
         self.parentWin = parent
+        
         self.progressBar.hide()
-        self.addCameras()
+        
+        self.startFrame = None
+        self.endFrame = None
         self.pl_item = pl_item
-        self.objectsSearchTerm = 'combined_mesh'
         self.layerButtons = []
         self.objectButtons = []
+        self.cameraButtons = []
+        
+        self.addCameras()
         self.addObjects()
         self.addLayers()
+        
         if self.pl_item:
             self.createButton.setText('Ok')
             self.populate()
+            self.autoCreateButton.setChecked(False)
+            self.stackedWidget.setCurrentIndex(0)
             self.autoCreateButton.hide()
         else:
             self.fillPathBoxes()
-        self.startFrame = None
-        self.endFrame = None
 
         self.fillButton.setIcon(QIcon(osp.join(icon_path, 'ic_fill.png')))
 
@@ -402,6 +408,11 @@ class ShotForm(Form1, Base1):
         self.fillButton.clicked.connect(self.fillName)
         self.selectAllButton.clicked.connect(self.selectAll)
         self.selectAllButton2.clicked.connect(self.selectAll2)
+        self.selectAllButton3.clicked.connect(self.handleSelectAllButton3)
+        self.autoCreateButton.toggled.connect(self.switchStackedWidget)
+        
+    def switchStackedWidget(self, stat):
+        self.stackedWidget.setCurrentIndex(int(stat))
         
     def selectAll(self):
         checked = self.selectAllButton.isChecked()
@@ -489,9 +500,34 @@ class ShotForm(Form1, Base1):
         cams = pc.ls(type='camera')
         names = [cam.firstParent().name() for cam in cams
                  if cam.orthographic.get() == False]
+        names.remove('persp')
         self.cameraBox.addItems(names)
-        self.cameraBox.view().setFixedWidth(self.cameraBox.sizeHint().width())
+        #self.cameraBox.view().setFixedWidth(self.cameraBox.minimumSizeHint().width())
         self.camCountLabel.setText(str(len(names)))
+        self.addCamerasToStackedWidget(names)
+        
+    def handleSelectAllButton3(self):
+        for btn in self.cameraButtons:
+            btn.setChecked(self.selectAllButton3.isChecked())
+    
+    def toggleSelectedAllButton3(self):
+        flag = True
+        for btn in self.cameraButtons:
+            if not btn.isChecked():
+                flag = False
+                break
+        self.selectAllButton3.setChecked(flag)
+        
+    def addCamerasToStackedWidget(self, names):
+        for name in names:
+            btn = QCheckBox(name, self)
+            btn.clicked.connect(self.toggleSelectedAllButton3)
+            btn.setChecked(True)
+            self.cameraLayout.addWidget(btn)
+            self.cameraButtons.append(btn)
+    
+    def getSelectedCameras(self):
+        return [btn.text() for btn in self.cameraButtons if btn.isChecked()]
 
     def populate(self):
         self.nameBox.setText(self.pl_item.name)
@@ -549,33 +585,28 @@ class ShotForm(Form1, Base1):
     def callCreate(self):
         playblastPath = str(self.playblastPathBox.text())
         cachePath = str(self.cachePathBox.text())
-#        if not self.playblastEnableButton.isChecked() and not self.cacheEnableButton.isChecked():
-#            showMessage(self, title='Shot Export', msg='No action is enabled, enable at least one',
-#                        icon=QMessageBox.Warning)
-#            return
         
         if self.playblastEnableButton.isChecked():
-            if not playblastPath and not self.autoCreate():
-                showMessage(self,
-                            msg='Playblast Path not specified', icon=QMessageBox.Warning)
-                return
-            if not osp.exists(playblastPath) and not self.autoCreate():
-                showMessage(self, title='Error', msg='Playblast path does not '+
-                            'exist', icon=QMessageBox.Information)
-                return
-#             if not [layer for layer in self.layerButtons if layer.isChecked()]:
-#                 showMessage(self, title='Shot Export', msg='No layer enabled, enable'+
-#                             ' at least one')
-#                 return
+            if not self.autoCreate():
+                if not playblastPath:
+                    showMessage(self,
+                                msg='Playblast Path not specified', icon=QMessageBox.Warning)
+                    return
+                if not osp.exists(playblastPath):
+                    showMessage(self, title='Error', msg='Playblast path does not '+
+                                'exist', icon=QMessageBox.Information)
+                    return
+
         if self.cacheEnableButton.isChecked():
-            if not cachePath and not self.autoCreate():
-                showMessage(self,
-                            msg='Cache Path not specified', icon=QMessageBox.Warning)
-                return
-            if not osp.exists(cachePath) and not self.autoCreate():
-                showMessage(self, title='Error', msg='Cache path does not '+
-                            'exist', icon=QMessageBox.Information)
-                return
+            if not self.autoCreate():
+                if not cachePath:
+                    showMessage(self,
+                                msg='Cache Path not specified', icon=QMessageBox.Warning)
+                    return
+                if not osp.exists(cachePath):
+                    showMessage(self, title='Error', msg='Cache path does not '+
+                                'exist', icon=QMessageBox.Information)
+                    return
             if not [obj for obj in self.objectButtons if obj.isChecked()]:
                 showMessage(self, title='Shot Export', msg='No object selected '+
                             'for cache, select at least one or uncheck the '+
@@ -602,20 +633,26 @@ class ShotForm(Form1, Base1):
                 if layer.isChecked()]
         
     def createAll(self, playblastPath, cachePath):
-        _max = self.cameraBox.count()
+        prefixPath = self.getSeqPath()
+        if not osp.exists(prefixPath):
+            showMessage(self, title='Error', msg='Sequence path does not exist',
+                        icon=QMessageBox.Information)
+            self.progressBar.hide()
+            return
+        cams = self.getSelectedCameras()
+        if not cams:
+            showMessage(self, title='Shot Export',
+                        msg='No camera selected',
+                        icon=QMessageBox.Information)
+            self.progressBar.hide()
+            return
+        _max = len(cams)
         self.progressBar.setMaximum(_max)
         self.progressBar.show()
-        for i in range(_max):
-            name = str(self.cameraBox.itemText(i))
+        for i, name in enumerate(cams):
             pathName = name.split(':')[-1].split('|')[-1]
             cam = pc.PyNode(name)
             start, end = self.getKeyFrame(cam)
-            prefixPath = self.getSeqPath()
-            if not osp.exists(prefixPath):
-                showMessage(self, title='Error', msg='Sequence path does not exist',
-                            icon=QMessageBox.Information)
-                self.progressBar.hide()
-                return
             playblastPath = self.getPlayblastPath(pathName)
             cachePath = self.getCachePath(pathName)
             self.create(name, cam, start, end, playblastPath, cachePath)
