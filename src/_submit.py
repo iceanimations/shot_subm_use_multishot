@@ -38,9 +38,11 @@ class Submitter(Form, Base):
         self.__colors_mapping__ = {'Red': 4, 'Green': 14, 'Yellow': 17,
                                    'Black': 1}
 
-        # setting up UI
         self.progressBar.hide()
+        
         self.collapsed = False
+        self.breakdownWindow = None
+        
         self.addButton.setIcon(QIcon(osp.join(icon_path, 'ic_add.png')))
         self.collapseButton.setIcon(QIcon(osp.join(icon_path,
                                                    'ic_toggle_collapse')))
@@ -76,6 +78,9 @@ class Submitter(Form, Base):
         appUsageApp.updateDatabase('shot_subm')
         
     def sceneBreakdown(self):
+        if self.breakdownWindow:
+            self.breakdownWindow.activateWindow()
+            return
         # get the user
         import login
         import auth.user as user
@@ -85,9 +90,14 @@ class Submitter(Form, Base):
                 return
     
         import breakdown
-        reload(breakdown)
-        win =  breakdown.Breakdown(self)
-        win.show()
+        self.breakdownWindow =  breakdown.Breakdown(self)
+        self.breakdownWindow.show()
+        self.breakdownWindow.closeEvent = self.breakdownCloseEvent
+        
+    def breakdownCloseEvent(self, event):
+        self.breakdownWindow.thread.terminate()
+        self.breakdownWindow.deleteLater()
+        self.breakdownWindow = None
         
     def enableCacheSelected(self):
         for item in self._playlist.getItems():
