@@ -261,7 +261,7 @@ class Submitter(Form, Base):
         
     def isActionEnabled(self):
         shots = []
-        for item in self._playlist.getItems():
+        for item in self.playlist.getItems():
             if item.selected:
                 enabled = False
                 for action in item.actions.getActions():
@@ -271,14 +271,28 @@ class Submitter(Form, Base):
                 if not enabled:
                     shots.append(item.name)
         return shots
-        
+    
+    def allPathsExist(self):
+        shots = {}
+        for item in self.playlist.getItems():
+            if item.selected:
+                for action in item.actions.getActions():
+                    if action.enabled:
+                        if not osp.exists(action.path):
+                            if shots.has_key(item.name):
+                                shots[item.name].append(action.path)
+                            else:
+                                shots[item.name] = [action.path]
+        return shots
 
     def export(self):
+        # check if at least one item is selected
         if not self.isItemSelected():
             showMessage(self, title='No selection',
                         msg='No shot selected to export',
                         icon=QMessageBox.Information)
             return
+        # check if at least one action is enaled for all selected items
         badShots = self.isActionEnabled()
         if badShots:
             numShots = len(badShots)
@@ -291,6 +305,23 @@ class Submitter(Form, Base):
                         details = detail,
                         icon=QMessageBox.Information)
             return
+        # check if paths for playblast and cache exist for all selected items
+        badShots = self.allPathsExist()
+        if badShots:
+            numShots = len(badShots)
+            s = 's' if numShots > 1 else ''
+            detail = ''
+            for shot, paths in badShots.items():
+                detail += shot +'\n'
+                for path in paths:
+                    detail += path +'\n'
+                detail += '\n'
+            showMessage(self, title='Path not found',
+                        msg=str(numShots) +' shot'+ s +' selected, but no path found',
+                        details = detail,
+                        icon=QMessageBox.Information)
+            return
+        
         try:
             for directory in os.listdir(exportutils.home):
                     shutil.rmtree(osp.join(exportutils.home, directory))
