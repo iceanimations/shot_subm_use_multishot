@@ -16,6 +16,7 @@ import subprocess
 import backend
 import appUsageApp
 reload(backend)
+import msgBox
 
 CacheExport = backend.CacheExport
 exportutils = backend.exportutils
@@ -39,7 +40,7 @@ class Submitter(Form, Base):
                                    'Black': 1}
 
         self.progressBar.hide()
-        
+
         self.collapsed = False
         self.breakdownWindow = None
         
@@ -171,7 +172,7 @@ class Submitter(Form, Base):
             icon = QMessageBox.Question
             btns = QMessageBox.Yes|QMessageBox.Cancel
 
-        btn = showMessage(self, title="Remove Selected",
+        btn = msgBox.msgBox.showMessage(self, title="Remove Selected",
                           msg=msg,
                           btns=btns,
                           icon=icon)
@@ -288,7 +289,7 @@ class Submitter(Form, Base):
     def export(self):
         # check if at least one item is selected
         if not self.isItemSelected():
-            showMessage(self, title='No selection',
+            msgBox.msgBox.showMessage(self, title='No selection',
                         msg='No shot selected to export',
                         icon=QMessageBox.Information)
             return
@@ -300,7 +301,7 @@ class Submitter(Form, Base):
             detail = ''
             for i, shot in enumerate(badShots):
                 detail += str(i+1) +' - '+ shot + '\n\n'
-            showMessage(self, title='No Action',
+            msgBox.showMessage(self, title='No Action',
                         msg=str(numShots) +' shot'+ s +' selected, but no action enabled',
                         details = detail,
                         icon=QMessageBox.Information)
@@ -316,7 +317,7 @@ class Submitter(Form, Base):
                 for path in paths:
                     detail += path +'\n'
                 detail += '\n'
-            showMessage(self, title='Path not found',
+            msgBox.showMessage(self, title='Path not found',
                         msg=str(numShots) +' shot'+ s +' selected, but no path found',
                         details = detail,
                         icon=QMessageBox.Information)
@@ -362,11 +363,11 @@ class Submitter(Form, Base):
                 detail = ''
                 for shot in errors:
                     detail += 'Shot: '+ shot +'\nReason: '+ errors[shot] +'\n\n'
-                showMessage(self, title='Error', msg=str(len(errors))+temp+
+                msgBox.showMessage(self, title='Error', msg=str(len(errors))+temp+
                             'not exported successfully',
                             icon=QMessageBox.Critical, details=detail)
         except Exception as ex:
-            showMessage(self, title='Error', msg=str(ex),
+            msgBox.showMessage(self, title='Error', msg=str(ex),
                         icon=QMessageBox.Critical)
         finally:
             self.progressBar.hide()
@@ -385,7 +386,7 @@ class Submitter(Form, Base):
             detail = ''
             for error in exportutils.errorsList:
                 detail += error +'\n\n'
-            showMessage(self, title='Error',
+            msgBox.showMessage(self, title='Error',
                         msg='Unable to copy files to destination\n'+
                         'your files copied to: '+ exportutils.home,
                         details=detail,
@@ -531,7 +532,7 @@ class ShotForm(Form1, Base1):
         cams = pc.ls(type='camera')
         names = [cam.firstParent().name() for cam in cams
                  if cam.orthographic.get() == False]
-        names.remove('persp')
+        #names.remove('persp')
         self.cameraBox.addItems(names)
         #self.cameraBox.view().setFixedWidth(self.cameraBox.minimumSizeHint().width())
         self.camCountLabel.setText(str(len(names)))
@@ -589,7 +590,7 @@ class ShotForm(Form1, Base1):
         animCurves = pc.listConnections(camera, scn=True,
                                         d=False, s=True)
         if not animCurves:
-            showMessage(self,
+            msgBox.showMessage(self,
                         msg='No in out found on \"'+camera.name()+"\"",
                         icon=QMessageBox.Warning)
             self.keyFrameButton.setChecked(False)
@@ -597,7 +598,7 @@ class ShotForm(Form1, Base1):
 
         frames = pc.keyframe(animCurves[0], q=True)
         if not frames:
-            showMessage(self, msg='No in out found on \"'+camera.name()+"\"",
+            msgBox.showMessage(self, msg='No in out found on \"'+camera.name()+"\"",
                         icon=QMessageBox.Warning)
             self.keyFrameButton.setChecked(False)
             return 0, 1
@@ -620,26 +621,26 @@ class ShotForm(Form1, Base1):
         if self.playblastEnableButton.isChecked():
             if not self.autoCreate():
                 if not playblastPath:
-                    showMessage(self,
+                    msgBox.showMessage(self,
                                 msg='Playblast Path not specified', icon=QMessageBox.Warning)
                     return
                 if not osp.exists(playblastPath):
-                    showMessage(self, title='Error', msg='Playblast path does not '+
+                    msgBox.showMessage(self, title='Error', msg='Playblast path does not '+
                                 'exist', icon=QMessageBox.Information)
                     return
 
         if self.cacheEnableButton.isChecked():
             if not self.autoCreate():
                 if not cachePath:
-                    showMessage(self,
+                    msgBox.showMessage(self,
                                 msg='Cache Path not specified', icon=QMessageBox.Warning)
                     return
                 if not osp.exists(cachePath):
-                    showMessage(self, title='Error', msg='Cache path does not '+
+                    msgBox.showMessage(self, title='Error', msg='Cache path does not '+
                                 'exist', icon=QMessageBox.Information)
                     return
             if not [obj for obj in self.objectButtons if obj.isChecked()]:
-                showMessage(self, title='Shot Export', msg='No object selected '+
+                msgBox.showMessage(self, title='Shot Export', msg='No object selected '+
                             'for cache, select at least one or uncheck the '+
                             '\"Enable\" button')
                 return
@@ -648,7 +649,7 @@ class ShotForm(Form1, Base1):
         else:
             name = str(self.nameBox.text())
             if not name:
-                showMessage(self, msg='Shot name not specified')
+                msgBox.showMessage(self, msg='Shot name not specified')
                 return
             camera = pc.PyNode(str(self.cameraBox.currentText()))
             if self.keyFrameButton.isChecked():
@@ -666,13 +667,13 @@ class ShotForm(Form1, Base1):
     def createAll(self, playblastPath, cachePath):
         prefixPath = self.getSeqPath()
         if not osp.exists(prefixPath):
-            showMessage(self, title='Error', msg='Sequence path does not exist',
+            msgBox.showMessage(self, title='Error', msg='Sequence path does not exist',
                         icon=QMessageBox.Information)
             self.progressBar.hide()
             return
         cams = self.getSelectedCameras()
         if not cams:
-            showMessage(self, title='Shot Export',
+            msgBox.showMessage(self, title='Shot Export',
                         msg='No camera selected',
                         icon=QMessageBox.Information)
             self.progressBar.hide()
@@ -833,7 +834,7 @@ class Item(Form2, Base2):
     def openLocation(self):
         pb = PlayblastExport.getActionFromList(self.pl_item.actions)
         if not osp.exists(pb.path):
-            showMessage(self.parentWin, title='Path Error',
+            msgBox.showMessage(self.parentWin, title='Path Error',
                         msg='Path does not exist',
                         icon=QMessageBox.Information)
             return
@@ -842,14 +843,14 @@ class Item(Form2, Base2):
     def openLocation2(self):
         ce = CacheExport.getActionFromList(self.pl_item.actions)
         if not osp.exists(ce.path):
-            showMessage(self.parentWin, title='Path Error',
+            msgBox.showMessage(self.parentWin, title='Path Error',
                         msg='Path does not exist',
                         icon=QMessageBox.Information)
             return
         subprocess.call('explorer %s'%ce.path, shell=True)
 
     def delete(self):
-        btn = showMessage(self, title='Delete Shot', msg='Are you sure, delete '
+        btn = msgBox.showMessage(self, title='Delete Shot', msg='Are you sure, delete '
                     +'"'+ self.getTitle() +'"?', icon=QMessageBox.Critical,
                     btns=QMessageBox.Yes|QMessageBox.No)
         if btn == QMessageBox.Yes:
@@ -911,31 +912,3 @@ class Item(Form2, Base2):
 
     def edit(self):
         self.parentWin.editItem(self.pl_item)
-
-class MessageBox(QMessageBox):
-    def __init__(self, parent=None):
-        super(MessageBox, self).__init__(parent)
-    
-    def closeEvent(self, event):
-        self.deleteLater()
-        
-    def hideEvent(self, event):
-        self.deleteLater()
-
-def showMessage(parent, title = 'Shot Export',
-                msg = 'Message', btns = QMessageBox.Ok,
-                icon = None, ques = None, details = None):
-
-    if msg:
-        mBox = MessageBox(parent)
-        mBox.setWindowTitle(title)
-        mBox.setText(msg)
-        if ques:
-            mBox.setInformativeText(ques)
-        if icon:
-            mBox.setIcon(icon)
-        if details:
-            mBox.setDetailedText(details)
-        mBox.setStandardButtons(btns)
-        buttonPressed = mBox.exec_()
-        return buttonPressed
