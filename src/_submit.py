@@ -172,7 +172,7 @@ class Submitter(Form, Base):
             icon = QMessageBox.Question
             btns = QMessageBox.Yes|QMessageBox.Cancel
 
-        btn = msgBox.msgBox.showMessage(self, title="Remove Selected",
+        btn = msgBox.showMessage(self, title="Remove Selected",
                           msg=msg,
                           btns=btns,
                           icon=icon)
@@ -289,7 +289,7 @@ class Submitter(Form, Base):
     def export(self):
         # check if at least one item is selected
         if not self.isItemSelected():
-            msgBox.msgBox.showMessage(self, title='No selection',
+            msgBox.showMessage(self, title='No selection',
                         msg='No shot selected to export',
                         icon=QMessageBox.Information)
             return
