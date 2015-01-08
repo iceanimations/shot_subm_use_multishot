@@ -35,6 +35,12 @@ __fps_mapping__ = {
 home = osp.join(osp.expanduser('~'), 'temp_shots_export')
 if not osp.exists(home):
     os.mkdir(home)
+    
+def removeFile(path):
+    try:
+        os.remove(path)
+    except Exception as ex:
+        pc.warning(ex)
 
 def copyFile(src, des):
     src = osp.normpath(src)

@@ -13,6 +13,8 @@ import shutil
 import os
 import exportutils
 from exceptions import *
+import qutil
+reload(qutil)
 
 PlayListUtils = shotplaylist.PlaylistUtils
 Action = shotactions.Action
@@ -62,10 +64,40 @@ class CacheExport(Action):
             pc.select(item.camera)
             self.exportCam(self.path)
             
+            self.applyCache()
+            
+    def applyCache(self):
+        mapping = {}
+        for objectSet in [setName for setName in self.get('objects')
+                          if type(pc.PyNode(setName)) != pc.nt.Mesh]:
+            cacheFile = osp.join(self.path, qutil.getNiceName(objectSet)+'_cache.xml')
+            if osp.exists(cacheFile):
+                try:
+                    combined = pc.PyNode(objectSet).forCache.outputs()[0]
+                    pc.mel.doImportCacheFile(cacheFile.replace('\\', '/'), "", [combined], list())
+                    mapping[objectSet] = combined
+                except Exception as ex:
+                    pc.warning(str(ex))
+        if mapping:
+            for _set in mapping:
+                try:
+                    pc.PyNode(_set).forCache.disconnect()
+                except Exception as ex:
+                    pc.warning(str(ex))
+            print mapping.values()
+            pc.select(mapping.values())
+            filePath = osp.join(self.path, self._item.name).replace('\\', '/')
+            #if osp.exists(filePath):
+            #    exportutils.removeFile(filePath)
+            cmds.file(filePath,
+                  force=True, options="v=0;",
+                  typ=cmds.file(q=True, type=True)[0], pr=True, es=True,
+                  channels=True, ch=True, constraints=True,sh=True, exp=True)
+            
     def exportCam(self, path):
         location = osp.splitext(cmds.file(q=True, location=True))
         path = osp.join(osp.dirname(path), 'camera')
-        itemName = self._item.name.split(':')[-1].split('|')[-1]+'_cam'
+        itemName = qutil.getNiceName(self._item.name)+'_cam'
         tempFilePath = osp.join(self.tempPath, itemName)
         
         tempFilePath = pc.exportSelected(tempFilePath,
