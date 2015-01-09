@@ -50,6 +50,7 @@ def copyFile(src, des):
         if osp.exists(existingFile):
             print 'removing %s...'%existingFile
             os.remove(existingFile)
+            print 'removed...'
         shutil.copy(src, des)
     except Exception as ex:
         try:

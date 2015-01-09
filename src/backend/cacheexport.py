@@ -15,6 +15,7 @@ import exportutils
 from exceptions import *
 import qutil
 reload(qutil)
+import time
 
 PlayListUtils = shotplaylist.PlaylistUtils
 Action = shotactions.Action
@@ -62,11 +63,13 @@ class CacheExport(Action):
             del self.combineMeshes[:]
             
             pc.select(item.camera)
-            self.exportCam(self.path)
+            self.exportCam()
             
             self.applyCache()
             
     def applyCache(self):
+        '''applies cache on the combined models connected to geo_sets
+        and exports the combined models'''
         mapping = {}
         for objectSet in [setName for setName in self.get('objects')
                           if type(pc.PyNode(setName)) != pc.nt.Mesh]:
@@ -84,19 +87,23 @@ class CacheExport(Action):
                     pc.PyNode(_set).forCache.disconnect()
                 except Exception as ex:
                     pc.warning(str(ex))
-            print mapping.values()
+            pc.select(cl=True)
             pc.select(mapping.values())
-            filePath = osp.join(self.path, self._item.name).replace('\\', '/')
-            #if osp.exists(filePath):
-            #    exportutils.removeFile(filePath)
-            cmds.file(filePath,
-                  force=True, options="v=0;",
-                  typ=cmds.file(q=True, type=True)[0], pr=True, es=True,
-                  channels=True, ch=True, constraints=True,sh=True, exp=True)
+            tempFilePath = osp.join(self.tempPath,
+                                    qutil.getNiceName(self._item.name)).replace('\\', '/') + '_cached_char'
+            tempFilePath = cmds.file(tempFilePath,
+                                     force=True, options="v=0;", es=True,
+                                     typ=cmds.file(q=True, type=True)[0], pr=True, ch=True)
+            exportutils.copyFile(tempFilePath, self.path)
+            for _set, mesh in mapping.items():
+                pc.PyNode(_set).forCache.connect(mesh.forCache, f=True)
+                pc.select(mesh)
+                pc.mel.eval('deleteCacheFile 3 { "keep", "", "geometry" };')
+        pc.select(cl=True)
             
-    def exportCam(self, path):
+    def exportCam(self):
         location = osp.splitext(cmds.file(q=True, location=True))
-        path = osp.join(osp.dirname(path), 'camera')
+        path = osp.join(osp.dirname(self.path), 'camera')
         itemName = qutil.getNiceName(self._item.name)+'_cam'
         tempFilePath = osp.join(self.tempPath, itemName)
         
