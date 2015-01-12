@@ -285,6 +285,29 @@ class Submitter(Form, Base):
                             else:
                                 shots[item.name] = [action.path]
         return shots
+    
+    def objectsConnected(self):
+        objects = []
+        for item in self.playlist.getItems():
+            if item.selected:
+                ce = CacheExport.getActionFromList(item.actions)
+                print ce
+                print ce.get('objects')
+                for _set in ce.get('objects'):
+                    print exportutils.isConnected(_set)
+                    if not exportutils.isConnected(_set):
+                        objects.append(_set)
+        return objects
+    
+    def objectsCompatible(self):
+        objects = []
+        for item in self.playlist.getItems():
+            if item.selected:
+                ce = CacheExport.getActionFromList(item.actions)
+                for _set in ce.get('objects'):
+                    if not exportutils.isCompatible(_set):
+                        objects.append(_set)
+        return objects
 
     def export(self):
         # check if at least one item is selected
@@ -293,6 +316,40 @@ class Submitter(Form, Base):
                         msg='No shot selected to export',
                         icon=QMessageBox.Information)
             return
+        # check if the sets are connected with the combined models
+        badObjects = self.objectsConnected()
+        if badObjects:
+            numObjects = len(badObjects)
+            s = 's' if numObjects > 1 else ''
+            detail = ''
+            for obj in badObjects:
+                detail += obj +'\n'
+            btn = msgBox.showMessage(self, title='Connection Error',
+                                     msg=str(numObjects) +' set'+ s +' not connected with the shaded model'+ s +
+                                     '\nIf you proceed, cache will not be applied to the models',
+                                     ques='Do you want to proceed?',
+                                     btns=QMessageBox.Yes|QMessageBox.No,
+                                     details = detail,
+                                     icon=QMessageBox.Information)
+            if btn == QMessageBox.No:
+                return
+        # check if the objects are compatible
+        badObjects = self.objectsCompatible()
+        if badObjects:
+            numObjects = len(badObjects)
+            s = 's' if numObjects > 1 else ''
+            detail = ''
+            for obj in badObjects:
+                detail += obj +'\n'
+            btn = msgBox.showMessage(self, title='Compatibility Error',
+                                     msg=str(numObjects) +' set'+ s +' not compatible with the shaded model'+ s +
+                                     '\nIf you proceed, cache would be broken',
+                                     ques='Do you want to proceed?',
+                                     btns=QMessageBox.Yes|QMessageBox.No,
+                                     details = detail,
+                                     icon=QMessageBox.Information)
+            if btn == QMessageBox.No:
+                return
         # check if at least one action is enaled for all selected items
         badShots = self.isActionEnabled()
         if badShots:
@@ -322,7 +379,7 @@ class Submitter(Form, Base):
                         details = detail,
                         icon=QMessageBox.Information)
             return
-        
+        # removes the directories from temp_shots_export directory in home directory
         try:
             for directory in os.listdir(exportutils.home):
                     shutil.rmtree(osp.join(exportutils.home, directory))

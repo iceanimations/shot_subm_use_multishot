@@ -36,6 +36,16 @@ home = osp.join(osp.expanduser('~'), 'temp_shots_export')
 if not osp.exists(home):
     os.mkdir(home)
     
+def isConnected(_set):
+    return pc.PyNode(_set).hasAttr('forCache') and pc.PyNode(_set).forCache.outputs()
+    
+def isCompatible(_set):
+    try:
+        return pc.polyEvaluate(_set, f=True) == pc.PyNode(_set).forCache.outputs()[0]
+    except Exception, ex:
+        pc.warning(str(ex))
+        return True
+    
 def removeFile(path):
     try:
         os.remove(path)
