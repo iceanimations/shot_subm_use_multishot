@@ -23,7 +23,7 @@ __hud_frame_1__ = '__hud_frame_1__'
 __hud_frame_2__ = '__hud_frame_2__'
 __labelColor__ = None
 __valueColor__ = None
-
+__DEFAULT_RESOLUTION__ = None
 __fps_mapping__ = {
                    'game': '15 fps', 'film': 'Film (24 fps)',
                    'pal': 'PAL (25 fps)', 'ntsc': 'NTSC (30 fps)',
@@ -77,6 +77,17 @@ def getDefaultResolution():
     node = pc.ls('defaultResolution')[0]
     return node.width.get(), node.height.get()
 
+def setDefaultResolution(res):
+    global __DEFAULT_RESOLUTION__
+    __DEFAULT_RESOLUTION__ = getDefaultResolution()
+    node = pc.ls('defaultResolution')[0]
+    node.width.set(res[0]); node.height.set(res[1])
+
+def restoreDefaultResolution():
+    res = __DEFAULT_RESOLUTION__
+    node = pc.ls('defaultResolution')[0]
+    node.width.set(res[0]); node.height.set(res[1])
+
 def saveHUDColor():
     global __labelColor__
     __labelColor__ = pc.general.displayColor('headsUpDisplayLabels', dormant=True, q=True)
@@ -123,9 +134,9 @@ def removeFrameInfo():
         pc.headsUpDisplay(__hud_frame_1__, rem=True)
     if pc.headsUpDisplay(__hud_frame_2__, exists=True):
         pc.headsUpDisplay(__hud_frame_2__, rem=True)
-    pc.Mel.eval('setCurrentFrameVisibility(`optionVar -q currentFrameVisibility`)')
-    pc.Mel.eval('setFocalLengthVisibility(`optionVar -q focalLengthVisibility`)')
-    pc.Mel.eval('setCameraNamesVisibility(`optionVar -q focalLengthVisibility`)')
+    pc.Mel.eval('setCurrentFrameVisibility(0)')
+    pc.Mel.eval('setFocalLengthVisibility(0)')
+    pc.Mel.eval('setCameraNamesVisibility(0)')
 
 def turnResolutionGateOn(camera):
     oscan = 1.4
@@ -162,6 +173,12 @@ def turnResolutionGateOff(camera):
         __safeTitle__ = True
     if not __resolutionGateMask__:
         pc.camera(camera, e=True, dgm=False, overscan=1.0)
+        
+def turnResolutionGateOffPer(camera):
+    pc.camera(camera, e=True, displayResolution=False, overscan=1.0)
+    pc.camera(camera, e=True, displaySafeAction=False, overscan=1.0)
+    pc.camera(camera, e=True, displaySafeTitle=False, overscan=1.0)
+    pc.camera(camera, e=True, dgm=False, overscan=1.0)
         
 def hideShowCurves(flag):
     sel = pc.ls(sl=True)

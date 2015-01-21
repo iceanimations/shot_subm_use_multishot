@@ -140,6 +140,15 @@ class PlayblastExport(Action):
             removeDate()
             showPolyCount()
             exportutils.turnResolutionGateOff(item.camera)
+            
+            # hd playblast without huds
+            removeNameLabel()
+            exportutils.turnResolutionGateOffPer(item.camera)
+            exportutils.setDefaultResolution((1920, 1080))
+            self.makePlayblast(sound=kwargs.get('sound'), hd=True)
+            exportutils.restoreDefaultResolution()
+            exportutils.turnResolutionGateOn(item.camera)
+            showNameLabel()
         
     def addLayers(self, layers):
         self['layers'][:] = layers
@@ -167,7 +176,7 @@ class PlayblastExport(Action):
                 pc.headsUpDisplay(hud, remove=True)
 
 
-    def makePlayblast(self, item=None, sound=None):
+    def makePlayblast(self, item=None, sound=None, hd=False):
         if not item:
             item = self.__item__
             if not item:
@@ -188,4 +197,11 @@ class PlayblastExport(Action):
                      quality=100, widthHeight=exportutils.getDefaultResolution(),
                      offScreen=1)
         tempFilePath += '.mov'
-        exportutils.copyFile(tempFilePath, self.path)
+        if hd:
+            path = osp.join(self.path, 'HD')
+            try:
+                os.mkdir(path)
+            except: pass
+        else:
+            path = self.path
+        exportutils.copyFile(tempFilePath, path)
