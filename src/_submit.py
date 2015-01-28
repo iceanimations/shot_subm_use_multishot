@@ -322,6 +322,22 @@ class Submitter(Form, Base):
                         details = detail,
                         icon=QMessageBox.Information)
             return
+        # checks for audio node and file
+        audioNodes = exportutils.getAudioNodes()
+        if not audioNodes:
+            btn = msgBox.showMessage(self, title='No Audio',
+                                     msg='No audio found in the scene',
+                                     ques='Do you want to proceed anyway?',
+                                     icon=QMessageBox.Question,
+                                     btns=QMessageBox.Yes|QMessageBox.No)
+            if btn == QMessageBox.No:
+                return
+        if len(audioNodes) > 1:
+            msgBox.showMessage(self, title='Audio Files',
+                                msg='More than one audio files found in the scene, '+
+                                'keep only one audio file',
+                                icon=QMessageBox.Information)
+            return
         
         try:
             for directory in os.listdir(exportutils.home):
@@ -352,7 +368,8 @@ class Submitter(Form, Base):
                 try:
                     if pl_item.selected:
                         qApp.processEvents()
-                        pl_item.actions.perform(sound=self.audioButton.isChecked())
+                        pl_item.actions.perform(sound=self.audioButton.isChecked(),
+                                                hd=self.hdButton.isChecked())
                         self.progressBar.setValue(count)
                         qApp.processEvents()
                         count += 1

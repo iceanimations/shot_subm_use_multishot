@@ -142,13 +142,14 @@ class PlayblastExport(Action):
             exportutils.turnResolutionGateOff(item.camera)
             
             # hd playblast without huds
-            removeNameLabel()
-            exportutils.turnResolutionGateOffPer(item.camera)
-            exportutils.setDefaultResolution((1920, 1080))
-            self.makePlayblast(sound=kwargs.get('sound'), hd=True)
-            exportutils.restoreDefaultResolution()
-            exportutils.turnResolutionGateOn(item.camera)
-            showNameLabel()
+            if kwargs.get('hd'):
+                removeNameLabel()
+                exportutils.turnResolutionGateOffPer(item.camera)
+                exportutils.setDefaultResolution((1920, 1080))
+                self.makePlayblast(sound=kwargs.get('sound'), hd=True)
+                exportutils.restoreDefaultResolution()
+                #exportutils.turnResolutionGateOn(item.camera)
+                showNameLabel()
         
     def addLayers(self, layers):
         self['layers'][:] = layers

@@ -35,6 +35,9 @@ __fps_mapping__ = {
 home = osp.join(osp.expanduser('~'), 'temp_shots_export')
 if not osp.exists(home):
     os.mkdir(home)
+    
+def getAudioNodes():
+    return pc.ls(type='audio')
 
 def copyFile(src, des):
     src = osp.normpath(src)
