@@ -139,7 +139,7 @@ def removeFrameInfo():
         pc.headsUpDisplay(__hud_frame_2__, rem=True)
     pc.Mel.eval('setCurrentFrameVisibility(0)')
     pc.Mel.eval('setFocalLengthVisibility(0)')
-    pc.Mel.eval('setCameraNamesVisibility(0)')
+    #pc.Mel.eval('setCameraNamesVisibility(0)')
 
 def turnResolutionGateOn(camera):
     oscan = 1.4
