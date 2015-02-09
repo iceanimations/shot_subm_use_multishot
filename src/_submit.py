@@ -324,7 +324,7 @@ class Submitter(Form, Base):
             return
         # checks for audio node and file
         audioNodes = exportutils.getAudioNodes()
-        if not audioNodes:
+        if self.audioButton.isChecked() and not audioNodes:
             btn = msgBox.showMessage(self, title='No Audio',
                                      msg='No audio found in the scene',
                                      ques='Do you want to proceed anyway?',
