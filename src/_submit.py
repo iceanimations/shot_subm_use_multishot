@@ -23,6 +23,7 @@ exportutils = backend.exportutils
 Playlist = backend.Playlist
 PlayblastExport = backend.PlayblastExport
 PlayListUtils = backend.PlayListUtils
+cacheexport = backend.cacheexport
 
 root_path = osp.dirname(osp.dirname(__file__))
 ui_path = osp.join(root_path, 'ui')
@@ -409,6 +410,16 @@ class Submitter(Form, Base):
                         details=detail,
                         icon=QMessageBox.Warning)
             exportutils.errorsList[:] = []
+            
+        if cacheexport.errorsList:
+            detail = ''
+            for error in cacheexport.errorsList:
+                detail += error +'\n\n'
+            msgBox.showMessage(self, title='Error',
+                        msg='Unable to export cache for geo sets\n',
+                        details=detail,
+                        icon=QMessageBox.Warning)
+            cacheexport.errorsList[:] = []
 
     def getPlaylist(self):
         return self._playlist
