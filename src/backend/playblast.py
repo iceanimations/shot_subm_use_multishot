@@ -8,7 +8,7 @@ import os
 import os.path as osp
 import exportutils
 import shutil
-
+import maya.cmds as cmds
 from exceptions import *
 
 
@@ -67,7 +67,7 @@ def showDate():
     if (pc.headsUpDisplay(__HUD_DATE__, q=True, exists=True)):
         pc.headsUpDisplay(__HUD_DATE__, remove=True) 
     pc.headsUpDisplay(__HUD_DATE__, section=1, block=0, blockSize="large", dfs="large",
-                      command="pc.date(format=\"DD/MM/YYYY hh:mm\")")
+                      command="import pymel.core as pc;pc.date(format=\"DD/MM/YYYY hh:mm\")")
 
 def removeNameLabel():
     global __HUD_LABEL__
