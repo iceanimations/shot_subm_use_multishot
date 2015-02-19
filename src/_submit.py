@@ -618,7 +618,7 @@ class ShotForm(Form1, Base1):
         animCurves = pc.listConnections(camera, scn=True,
                                         d=False, s=True)
         if not animCurves:
-            msgBox.showMessage(self,
+            msgBox.showMessage(self, title='No Inout',
                         msg='No in out found on \"'+camera.name()+"\"",
                         icon=QMessageBox.Warning)
             self.keyFrameButton.setChecked(False)
@@ -627,7 +627,7 @@ class ShotForm(Form1, Base1):
         frames = pc.keyframe(animCurves[0], q=True)
         if not frames:
             msgBox.showMessage(self, msg='No in out found on \"'+camera.name()+"\"",
-                        icon=QMessageBox.Warning)
+                        icon=QMessageBox.Warning, title='No Inout')
             self.keyFrameButton.setChecked(False)
             return 0, 1
 
@@ -649,7 +649,7 @@ class ShotForm(Form1, Base1):
         if self.playblastEnableButton.isChecked():
             if not self.autoCreate():
                 if not playblastPath:
-                    msgBox.showMessage(self,
+                    msgBox.showMessage(self, title='No Path',
                                 msg='Playblast Path not specified', icon=QMessageBox.Warning)
                     return
                 if not osp.exists(playblastPath):
@@ -660,7 +660,7 @@ class ShotForm(Form1, Base1):
         if self.cacheEnableButton.isChecked():
             if not self.autoCreate():
                 if not cachePath:
-                    msgBox.showMessage(self,
+                    msgBox.showMessage(self, title='Cache Path',
                                 msg='Cache Path not specified', icon=QMessageBox.Warning)
                     return
                 if not osp.exists(cachePath):
@@ -677,7 +677,8 @@ class ShotForm(Form1, Base1):
         else:
             name = str(self.nameBox.text())
             if not name:
-                msgBox.showMessage(self, msg='Shot name not specified')
+                msgBox.showMessage(self, title='Shot name',
+                                   msg='Shot name not specified')
                 return
             camera = pc.PyNode(str(self.cameraBox.currentText()))
             if self.keyFrameButton.isChecked():
