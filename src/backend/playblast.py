@@ -8,7 +8,7 @@ import os
 import os.path as osp
 import exportutils
 import shutil
-
+import maya.cmds as cmds
 from exceptions import *
 
 
@@ -67,7 +67,7 @@ def showDate():
     if (pc.headsUpDisplay(__HUD_DATE__, q=True, exists=True)):
         pc.headsUpDisplay(__HUD_DATE__, remove=True) 
     pc.headsUpDisplay(__HUD_DATE__, section=1, block=0, blockSize="large", dfs="large",
-                      command="pc.date(format=\"DD/MM/YYYY hh:mm\")")
+                      command="import pymel.core as pc;pc.date(format=\"DD/MM/YYYY hh:mm\")")
 
 def removeNameLabel():
     global __HUD_LABEL__
@@ -141,6 +141,16 @@ class PlayblastExport(Action):
             removeDate()
             showPolyCount()
             exportutils.turnResolutionGateOff(item.camera)
+            
+            # hd playblast without huds
+            if kwargs.get('hd'):
+                removeNameLabel()
+                exportutils.turnResolutionGateOffPer(item.camera)
+                exportutils.setDefaultResolution((1920, 1080))
+                self.makePlayblast(sound=kwargs.get('sound'), hd=True)
+                exportutils.restoreDefaultResolution()
+                #exportutils.turnResolutionGateOn(item.camera)
+                showNameLabel()
         
     def addLayers(self, layers):
         self['layers'][:] = layers
@@ -168,7 +178,7 @@ class PlayblastExport(Action):
                 pc.headsUpDisplay(hud, remove=True)
 
 
-    def makePlayblast(self, item=None, sound=None):
+    def makePlayblast(self, item=None, sound=None, hd=False):
         if not item:
             item = self.__item__
             if not item:
@@ -189,4 +199,11 @@ class PlayblastExport(Action):
                      quality=100, widthHeight=exportutils.getDefaultResolution(),
                      offScreen=1)
         tempFilePath += '.mov'
-        exportutils.copyFile(tempFilePath, self.path)
+        if hd:
+            path = osp.join(self.path, 'HD')
+            try:
+                os.mkdir(path)
+            except: pass
+        else:
+            path = self.path
+        exportutils.copyFile(tempFilePath, path)

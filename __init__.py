@@ -1,6 +1,6 @@
 import src._submit as subm
 reload(subm)
-Submitter = subm.Submitter
+Window = subm.Submitter
 import pymel.core as pc
 
 doCreateGeometryCache2 =r'''global proc string[] doCreateGeometryCache2 ( int $version, string $args[] )

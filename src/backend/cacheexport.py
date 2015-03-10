@@ -16,6 +16,7 @@ from exceptions import *
 
 PlayListUtils = shotplaylist.PlaylistUtils
 Action = shotactions.Action
+errorsList = []
 
 class CacheExport(Action):
     def __init__(self, *args, **kwargs):
@@ -102,6 +103,10 @@ class CacheExport(Action):
                               type = "transform")
                       for shape in transform.getShapes(type = "mesh",
                                                        ni = True)]
+            if not meshes:
+                errorsList.append('Could not Create cache for '+ str(objectSet)
+                                  +'\nReason: This set is no longer a valid set')
+                continue
             combineMesh = pc.createNode("mesh")
             pc.rename(combineMesh, objectSet.split(":")[-1].split('|')[-1]+"_cache")
             self.combineMeshes.append(combineMesh)

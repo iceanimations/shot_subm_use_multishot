@@ -23,6 +23,7 @@ exportutils = backend.exportutils
 Playlist = backend.Playlist
 PlayblastExport = backend.PlayblastExport
 PlayListUtils = backend.PlayListUtils
+cacheexport = backend.cacheexport
 
 root_path = osp.dirname(osp.dirname(__file__))
 ui_path = osp.join(root_path, 'ui')
@@ -322,6 +323,22 @@ class Submitter(Form, Base):
                         details = detail,
                         icon=QMessageBox.Information)
             return
+        # checks for audio node and file
+        audioNodes = exportutils.getAudioNodes()
+        if self.audioButton.isChecked() and not audioNodes:
+            btn = msgBox.showMessage(self, title='No Audio',
+                                     msg='No audio found in the scene',
+                                     ques='Do you want to proceed anyway?',
+                                     icon=QMessageBox.Question,
+                                     btns=QMessageBox.Yes|QMessageBox.No)
+            if btn == QMessageBox.No:
+                return
+        if len(audioNodes) > 1:
+            msgBox.showMessage(self, title='Audio Files',
+                                msg='More than one audio files found in the scene, '+
+                                'keep only one audio file',
+                                icon=QMessageBox.Information)
+            return
         
         try:
             for directory in os.listdir(exportutils.home):
@@ -352,7 +369,8 @@ class Submitter(Form, Base):
                 try:
                     if pl_item.selected:
                         qApp.processEvents()
-                        pl_item.actions.perform(sound=self.audioButton.isChecked())
+                        pl_item.actions.perform(sound=self.audioButton.isChecked(),
+                                                hd=self.hdButton.isChecked())
                         self.progressBar.setValue(count)
                         qApp.processEvents()
                         count += 1
@@ -392,6 +410,16 @@ class Submitter(Form, Base):
                         details=detail,
                         icon=QMessageBox.Warning)
             exportutils.errorsList[:] = []
+            
+        if cacheexport.errorsList:
+            detail = ''
+            for error in cacheexport.errorsList:
+                detail += error +'\n\n'
+            msgBox.showMessage(self, title='Error',
+                        msg='Unable to export cache for geo sets\n',
+                        details=detail,
+                        icon=QMessageBox.Warning)
+            cacheexport.errorsList[:] = []
 
     def getPlaylist(self):
         return self._playlist
@@ -590,7 +618,7 @@ class ShotForm(Form1, Base1):
         animCurves = pc.listConnections(camera, scn=True,
                                         d=False, s=True)
         if not animCurves:
-            msgBox.showMessage(self,
+            msgBox.showMessage(self, title='No Inout',
                         msg='No in out found on \"'+camera.name()+"\"",
                         icon=QMessageBox.Warning)
             self.keyFrameButton.setChecked(False)
@@ -599,7 +627,7 @@ class ShotForm(Form1, Base1):
         frames = pc.keyframe(animCurves[0], q=True)
         if not frames:
             msgBox.showMessage(self, msg='No in out found on \"'+camera.name()+"\"",
-                        icon=QMessageBox.Warning)
+                        icon=QMessageBox.Warning, title='No Inout')
             self.keyFrameButton.setChecked(False)
             return 0, 1
 
@@ -621,7 +649,7 @@ class ShotForm(Form1, Base1):
         if self.playblastEnableButton.isChecked():
             if not self.autoCreate():
                 if not playblastPath:
-                    msgBox.showMessage(self,
+                    msgBox.showMessage(self, title='No Path',
                                 msg='Playblast Path not specified', icon=QMessageBox.Warning)
                     return
                 if not osp.exists(playblastPath):
@@ -632,7 +660,7 @@ class ShotForm(Form1, Base1):
         if self.cacheEnableButton.isChecked():
             if not self.autoCreate():
                 if not cachePath:
-                    msgBox.showMessage(self,
+                    msgBox.showMessage(self, title='Cache Path',
                                 msg='Cache Path not specified', icon=QMessageBox.Warning)
                     return
                 if not osp.exists(cachePath):
@@ -649,7 +677,8 @@ class ShotForm(Form1, Base1):
         else:
             name = str(self.nameBox.text())
             if not name:
-                msgBox.showMessage(self, msg='Shot name not specified')
+                msgBox.showMessage(self, title='Shot name',
+                                   msg='Shot name not specified')
                 return
             camera = pc.PyNode(str(self.cameraBox.currentText()))
             if self.keyFrameButton.isChecked():
