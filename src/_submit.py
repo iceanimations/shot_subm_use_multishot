@@ -294,7 +294,6 @@ class Submitter(Form, Base):
                 print ce
                 print ce.get('objects')
                 for _set in ce.get('objects'):
-                    print exportutils.isConnected(_set)
                     if not exportutils.isConnected(_set):
                         objects.append(_set)
         return objects
@@ -307,6 +306,7 @@ class Submitter(Form, Base):
                 for _set in ce.get('objects'):
                     if not exportutils.isCompatible(_set):
                         objects.append(_set)
+        return []
         return objects
 
     def export(self):
@@ -317,39 +317,23 @@ class Submitter(Form, Base):
                         icon=QMessageBox.Information)
             return
         # check if the sets are connected with the combined models
-        badObjects = self.objectsConnected()
-        if badObjects:
-            numObjects = len(badObjects)
-            s = 's' if numObjects > 1 else ''
-            detail = ''
-            for obj in badObjects:
-                detail += obj +'\n'
-            btn = msgBox.showMessage(self, title='Connection Error',
-                                     msg=str(numObjects) +' set'+ s +' not connected with the shaded model'+ s +
-                                     '\nIf you proceed, cache will not be applied to the models',
-                                     ques='Do you want to proceed?',
-                                     btns=QMessageBox.Yes|QMessageBox.No,
-                                     details = detail,
-                                     icon=QMessageBox.Information)
-            if btn == QMessageBox.No:
-                return
-        # check if the objects are compatible
-        badObjects = self.objectsCompatible()
-        if badObjects:
-            numObjects = len(badObjects)
-            s = 's' if numObjects > 1 else ''
-            detail = ''
-            for obj in badObjects:
-                detail += obj +'\n'
-            btn = msgBox.showMessage(self, title='Compatibility Error',
-                                     msg=str(numObjects) +' set'+ s +' not compatible with the shaded model'+ s +
-                                     '\nIf you proceed, cache would be broken',
-                                     ques='Do you want to proceed?',
-                                     btns=QMessageBox.Yes|QMessageBox.No,
-                                     details = detail,
-                                     icon=QMessageBox.Information)
-            if btn == QMessageBox.No:
-                return
+        if self.applyCacheButton.isChecked():
+            badObjects = self.objectsConnected()
+            if badObjects:
+                numObjects = len(badObjects)
+                s = 's' if numObjects > 1 else ''
+                detail = ''
+                for obj in badObjects:
+                    detail += obj +'\n'
+                btn = msgBox.showMessage(self, title='Connection Error',
+                                         msg='Could not find LD path for '+str(numObjects) +' set'+ s+
+                                         '\nIf you proceed, cache will not be applied to the models',
+                                         ques='Do you want to proceed?',
+                                         btns=QMessageBox.Yes|QMessageBox.No,
+                                         details = detail,
+                                         icon=QMessageBox.Information)
+                if btn == QMessageBox.No:
+                    return
         # check if at least one action is enaled for all selected items
         badShots = self.isActionEnabled()
         if badShots:
@@ -409,7 +393,8 @@ class Submitter(Form, Base):
                 try:
                     if pl_item.selected:
                         qApp.processEvents()
-                        pl_item.actions.perform(sound=self.audioButton.isChecked())
+                        pl_item.actions.perform(sound=self.audioButton.isChecked(),
+                                                applyCache=self.applyCacheButton.isChecked())
                         self.progressBar.setValue(count)
                         qApp.processEvents()
                         count += 1

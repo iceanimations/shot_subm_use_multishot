@@ -37,7 +37,7 @@ if not osp.exists(home):
     os.mkdir(home)
     
 def isConnected(_set):
-    return pc.PyNode(_set).hasAttr('forCache') and pc.PyNode(_set).forCache.outputs()
+    return pc.PyNode(_set).hasAttr('forCache') and pc.PyNode(_set).forCache.get()
     
 def isCompatible(_set):
     try:
