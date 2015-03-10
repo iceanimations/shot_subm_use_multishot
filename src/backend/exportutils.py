@@ -39,6 +39,22 @@ if not osp.exists(home):
 def getAudioNodes():
     return pc.ls(type='audio')
 
+def isConnected(_set):
+    return pc.PyNode(_set).hasAttr('forCache') and pc.PyNode(_set).forCache.get()
+    
+def isCompatible(_set):
+    try:
+        return pc.polyEvaluate(_set, f=True) == pc.PyNode(_set).forCache.outputs()[0]
+    except Exception, ex:
+        pc.warning(str(ex))
+        return True
+    
+def removeFile(path):
+    try:
+        os.remove(path)
+    except Exception as ex:
+        pc.warning(ex)
+
 def copyFile(src, des):
     src = osp.normpath(src)
     des = osp.normpath(des)
@@ -47,6 +63,7 @@ def copyFile(src, des):
         if osp.exists(existingFile):
             print 'removing %s...'%existingFile
             os.remove(existingFile)
+            print 'removed...'
         shutil.copy(src, des)
     except Exception as ex:
         try:

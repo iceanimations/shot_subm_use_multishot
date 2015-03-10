@@ -13,6 +13,9 @@ import shutil
 import os
 import exportutils
 from exceptions import *
+import qutil
+reload(qutil)
+import time
 
 PlayListUtils = shotplaylist.PlaylistUtils
 Action = shotactions.Action
@@ -61,12 +64,80 @@ class CacheExport(Action):
             del self.combineMeshes[:]
             
             pc.select(item.camera)
-            self.exportCam(self.path)
+            self.exportCam()
             
-    def exportCam(self, path):
+            if kwargs.get('applyCache'):
+                self.applyCache()
+            
+    def getCombinedMesh(self, ref):
+        '''returns the top level meshes from a reference node'''
+        meshes = []
+        if ref:
+            for node in pc.FileReference(ref).nodes():
+                if type(node) == pc.nt.Mesh:
+                    try:
+                        node.firstParent().firstParent()
+                    except pc.MayaNodeError:
+                        if not node.isIntermediate():
+                            meshes.append(node.firstParent())
+                    except Exception as ex:
+                        print '=>'*3, ex
+        return meshes
+        
+    def addRef(self, path):
+        try:
+            return pc.createReference(path)
+        except Exception as ex:
+            print '=>'*3, ex
+            
+    def applyCache(self):
+        '''applies cache on the combined models connected to geo_sets
+        and exports the combined models'''
+        mapping = {}
+        for objectSet in [setName for setName in self.get('objects')
+                          if type(pc.PyNode(setName)) == pc.nt.ObjectSet]:
+            cacheFile = osp.join(self.path, qutil.getNiceName(objectSet)+'_cache.xml')
+            if osp.exists(cacheFile):
+                path = pc.PyNode(objectSet).forCache.get()
+                if path:
+                    if osp.exists(path):
+                        meshes = self.getCombinedMesh(self.addRef(path))
+                        if len(meshes) == 1:
+                            pc.mel.doImportCacheFile(cacheFile.replace('\\', '/'), "", meshes, list())
+                        else:
+                            print '=>'*3, 'Multiple meshes found', meshes
+                    else:
+                        print '=>'*3, 'LD path does not exist', path
+                else:
+                    print '=>'*3, 'LD path not added or specified'
+            else:
+                print '=>'*3, 'cache file does not exist'. cacheFile
+                        #mapping[objectSet] = combined
+        # export the characters
+        #if mapping:
+        #    for _set in mapping:
+        #        try:
+        #            pc.PyNode(_set).forCache.disconnect()
+        #        except Exception as ex:
+        #            pc.warning(str(ex))
+        #    pc.select(cl=True)
+        #    pc.select(mapping.values())
+        #    tempFilePath = osp.join(self.tempPath,
+        #                            qutil.getNiceName(self._item.name)).replace('\\', '/') + '_cached_char'
+        #    tempFilePath = cmds.file(tempFilePath,
+        #                             force=True, options="v=0;", es=True,
+        #                             typ=cmds.file(q=True, type=True)[0], pr=True, ch=True)
+        #    exportutils.copyFile(tempFilePath, self.path)
+        #    for _set, mesh in mapping.items():
+        #        pc.PyNode(_set).forCache.connect(mesh.forCache, f=True)
+        #        pc.select(mesh)
+        #        pc.mel.eval('deleteCacheFile 3 { "keep", "", "geometry" };')
+        #pc.select(cl=True)
+            
+    def exportCam(self):
         location = osp.splitext(cmds.file(q=True, location=True))
-        path = osp.join(osp.dirname(path), 'camera')
-        itemName = self._item.name.split(':')[-1].split('|')[-1]+'_cam'
+        path = osp.join(osp.dirname(self.path), 'camera')
+        itemName = qutil.getNiceName(self._item.name)+'_cam'
         tempFilePath = osp.join(self.tempPath, itemName)
         
         tempFilePath = pc.exportSelected(tempFilePath,

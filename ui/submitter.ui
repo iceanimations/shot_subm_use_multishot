@@ -282,6 +282,11 @@ padding-bottom: 1px;</string>
          <string>HD</string>
         </property>
        </widget>
+       <widget class="QCheckBox" name="applyCacheButton">
+        <property name="text">
+         <string>Apply Cache</string>
+        </property>
+       </widget>
       </item>
       <item>
        <widget class="QCheckBox" name="audioButton">
