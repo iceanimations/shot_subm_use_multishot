@@ -458,7 +458,7 @@ class Submitter(Form, Base):
             for error in cacheexport.errorsList:
                 detail += error +'\n\n'
             msgBox.showMessage(self, title='Error',
-                        msg='Unable to export cache for geo sets\n',
+                        msg='Errors occurred while exporting or applying cache\n',
                         details=detail,
                         icon=QMessageBox.Warning)
             cacheexport.errorsList[:] = []

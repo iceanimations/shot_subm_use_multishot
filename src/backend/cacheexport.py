@@ -83,6 +83,16 @@ class CacheExport(Action):
                     except Exception as ex:
                         errorsList.append('Could not retrieve combined mesh for Reference\n'+ref.path+'\nReason: '+ str(ex))
         return meshes
+    
+    def getMeshFromSet(self, ref):
+        meshes = []
+        if ref:
+            try:
+                _set = [obj for obj in pc.ls(et=pc.nt.ObjectSet) if obj.name().endswith('_geo_set')][0]
+                return [pc.polyUnite(ch=1, mergeUVSets=1, *_set.members())[0]] # put the first element in list and return
+            except:
+                return meshes
+        return meshes     
         
     def addRef(self, path):
         try:
@@ -101,11 +111,14 @@ class CacheExport(Action):
                 path = pc.PyNode(objectSet).forCache.get()
                 if path:
                     if osp.exists(path):
-                        meshes = self.getCombinedMesh(self.addRef(path))
+                        ref = self.addRef(path)
+                        meshes = self.getCombinedMesh(ref)
+                        if len(meshes) != 1:
+                            meshes = self.getMeshFromSet(ref)
                         if len(meshes) == 1:
                             pc.mel.doImportCacheFile(cacheFile.replace('\\', '/'), "", meshes, list())
                         else:
-                            errorsList.append('Multiple meshes found in\n'+ path +'\n'+ '\n'.join(meshes))
+                            errorsList.append('Unable to identify Combined mesh or ObjectSet\n'+ path +'\n'+ '\n'.join(meshes))
                     else:
                         errorsList.append('LD path does not exist for '+objectSet+'\n'+ path)
                 else:
