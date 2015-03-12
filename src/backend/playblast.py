@@ -137,7 +137,7 @@ class PlayblastExport(Action):
             
             self.makePlayblast(sound=kwargs.get('sound'))
             
-            exportutils.disableStretchMesh()
+            exportutils.restoreStretchMesh()
             exportutils.removeFrameInfo()
             removeDate()
             showPolyCount()
@@ -150,7 +150,7 @@ class PlayblastExport(Action):
                 exportutils.setDefaultResolution((1920, 1080))
                 exportutils.enableStretchMesh()
                 self.makePlayblast(sound=kwargs.get('sound'), hd=True)
-                exportutils.disableStretchMesh()
+                exportutils.restoreStretchMesh()
                 exportutils.restoreDefaultResolution()
                 #exportutils.turnResolutionGateOn(item.camera)
                 showNameLabel()

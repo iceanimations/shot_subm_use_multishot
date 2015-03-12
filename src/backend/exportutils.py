@@ -31,6 +31,7 @@ __fps_mapping__ = {
                    'ntscf': 'NTSC Field 60 fps', 'millisec': 'milliseconds',
                    'sec': 'seconds', 'min': 'minutes', 'hour': 'hours'
                    }
+__stretchMeshEnvelope__ = {}
 
 home = osp.join(osp.expanduser('~'), 'temp_shots_export')
 if not osp.exists(home):
@@ -254,10 +255,20 @@ def getObjects():
     return objSets
 
 def enableStretchMesh():
+    global __stretchMeshEnvelope__
     for node in pc.ls(type='stretchMesh'):
+        __stretchMeshEnvelope__[node] = node.envelope.get()
         node.envelope.set(1.0)
 
-def disableStretchMesh():
+def restoreStretchMesh():
     for node in pc.ls(type='stretchMesh'):
+        env = __stretchMeshEnvelope__.get(node)
+        if env is not None:
+            node.envelope.set(env)
+
+def disableStretchMesh():
+    global __stretchMeshEnvelope__
+    for node in pc.ls(type='stretchMesh'):
+        __stretchMeshEnvelope__[node] = node.envelope.get()
         node.envelope.set(0.0)
 

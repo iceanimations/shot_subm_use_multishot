@@ -60,7 +60,7 @@ class CacheExport(Action):
 
             self.exportCache(conf)
             
-            exportutils.disableStretchMesh()
+            exportutils.restoreStretchMesh()
             pc.delete(map(lambda x: x.getParent(),self.combineMeshes))
             del self.combineMeshes[:]
             
