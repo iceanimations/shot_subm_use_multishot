@@ -252,3 +252,12 @@ def getObjects():
         if 'geo_set' in str(_set).lower():
             objSets.append(_set.name())
     return objSets
+
+def enableStretchMesh():
+    for node in pc.ls(type='stretchMesh'):
+        node.envelope.set(1.0)
+
+def disableStretchMesh():
+    for node in pc.ls(type='stretchMesh'):
+        node.envelope.set(0.0)
+

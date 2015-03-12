@@ -15,7 +15,6 @@ import exportutils
 from exceptions import *
 import qutil
 reload(qutil)
-import time
 
 PlayListUtils = shotplaylist.PlaylistUtils
 Action = shotactions.Action
@@ -57,9 +56,11 @@ class CacheExport(Action):
             conf["start_time"] = item.getInFrame()
             conf["end_time"] = item.getOutFrame()
             conf["cache_dir"] = self.path.replace('\\', '/')
-            
+            exportutils.enableStretchMesh()
+
             self.exportCache(conf)
             
+            exportutils.disableStretchMesh()
             pc.delete(map(lambda x: x.getParent(),self.combineMeshes))
             del self.combineMeshes[:]
             

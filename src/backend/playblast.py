@@ -67,7 +67,7 @@ def showDate():
     if (pc.headsUpDisplay(__HUD_DATE__, q=True, exists=True)):
         pc.headsUpDisplay(__HUD_DATE__, remove=True) 
     pc.headsUpDisplay(__HUD_DATE__, section=1, block=0, blockSize="large", dfs="large",
-                      command="import pymel.core as pc;pc.date(format=\"DD/MM/YYYY hh:mm\")")
+                      command="import pymel.core as pc;pc.date(format=\"DD/MM/YYYY hh:mm\")") #"
 
 def removeNameLabel():
     global __HUD_LABEL__
@@ -133,9 +133,11 @@ class PlayblastExport(Action):
             showDate()
             exportutils.turnResolutionGateOn(item.camera)
             exportutils.showFrameInfo(item)
+            exportutils.enableStretchMesh()
             
             self.makePlayblast(sound=kwargs.get('sound'))
             
+            exportutils.disableStretchMesh()
             exportutils.removeFrameInfo()
             removeDate()
             showPolyCount()
@@ -146,7 +148,9 @@ class PlayblastExport(Action):
                 removeNameLabel()
                 exportutils.turnResolutionGateOffPer(item.camera)
                 exportutils.setDefaultResolution((1920, 1080))
+                exportutils.enableStretchMesh()
                 self.makePlayblast(sound=kwargs.get('sound'), hd=True)
+                exportutils.disableStretchMesh()
                 exportutils.restoreDefaultResolution()
                 #exportutils.turnResolutionGateOn(item.camera)
                 showNameLabel()
