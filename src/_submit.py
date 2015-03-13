@@ -292,8 +292,6 @@ class Submitter(Form, Base):
         for item in self.playlist.getItems():
             if item.selected:
                 ce = CacheExport.getActionFromList(item.actions)
-                print ce
-                print ce.get('objects')
                 for _set in ce.get('objects'):
                     if not exportutils.isConnected(_set):
                         objects.append(_set)
@@ -391,8 +389,6 @@ class Submitter(Form, Base):
             self.closeButton.setEnabled(False)
             self.progressBar.show()
             self.progressBar.setMinimum(0)
-            self.progressBar.setMaximum(len([i for i in self.items
-                                             if i.isChecked()]))
             state = PlayListUtils.getDisplayLayersState()
             exportutils.setOriginalCamera()
             exportutils.setOriginalFrame()
@@ -404,20 +400,28 @@ class Submitter(Form, Base):
             backend.playblast.showNameLabel()
             errors = {}
             self.progressBar.setValue(0)
+            generator = self._playlist.performActions()
+            self.progressBar.setMaximum(generator.next())
             qApp.processEvents()
-            count = 1
-            for pl_item in self._playlist.getItems():
-                try:
-                    if pl_item.selected:
-                        qApp.processEvents()
-                        pl_item.actions.perform(sound=self.audioButton.isChecked(),
-                                                hd=self.hdButton.isChecked(),
-                                                applyCache=self.applyCacheButton.isChecked())
-                        self.progressBar.setValue(count)
-                        qApp.processEvents()
-                        count += 1
-                except Exception as ex:
-                    errors[pl_item.name] = str(ex)
+            for i, val in enumerate(generator):
+                if isinstance(val, list):
+                    errors[val[0].name] = str(val[1])
+                self.progressBar.setValue(i + 1)
+                qApp.processEvents()
+                
+            #count = 1
+            #for pl_item in self._playlist.getItems():
+            #    try:
+            #        if pl_item.selected:
+            #            qApp.processEvents()
+            #            pl_item.actions.perform(sound=self.audioButton.isChecked(),
+            #                                    hd=self.hdButton.isChecked(),
+            #                                    applyCache=self.applyCacheButton.isChecked())
+            #            self.progressBar.setValue(count)
+            #            qApp.processEvents()
+            #            count += 1
+            #    except Exception as ex:
+            #        errors[pl_item.name] = str(ex)
             temp = ' shots ' if len(errors) > 1 else ' shot '
             if errors:
                 detail = ''

@@ -96,6 +96,7 @@ class Action(OrderedDict):
         def fset(self, value):
             self.__item__ = value
         return locals()
+    plItem = property(**_item())
     _item = property(**_item())
 
     def read_conf(self, confname=''):
