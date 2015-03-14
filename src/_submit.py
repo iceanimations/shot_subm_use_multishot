@@ -400,7 +400,9 @@ class Submitter(Form, Base):
             backend.playblast.showNameLabel()
             errors = {}
             self.progressBar.setValue(0)
-            generator = self._playlist.performActions()
+            generator = self._playlist.performActions(sound=self.audioButton.isChecked(),
+                                                      hd=self.hdButton.isChecked(),
+                                                      applyCache=self.applyCacheButton.isChecked())
             self.progressBar.setMaximum(generator.next())
             qApp.processEvents()
             for i, val in enumerate(generator):

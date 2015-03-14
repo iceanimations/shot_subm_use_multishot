@@ -96,7 +96,7 @@ class Playlist(object):
                 items.append( item )
         return items
 
-    def performActions(self):
+    def performActions(self, **kwargs):
         #for item in self.getItems():
         #    if item.selected:
         #        item.actions.perform()
@@ -109,7 +109,7 @@ class Playlist(object):
             for action in allActions:
                 try:
                     if action.__class__.__name__ == actiontype:
-                        action.perform()
+                        action.perform(**kwargs)
                         yield action
                 except Exception as ex:
                     yield [action.plItem, ex]
