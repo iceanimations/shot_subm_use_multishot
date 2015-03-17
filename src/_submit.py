@@ -286,6 +286,27 @@ class Submitter(Form, Base):
                             else:
                                 shots[item.name] = [action.path]
         return shots
+    
+    def objectsConnected(self):
+        objects = []
+        for item in self.playlist.getItems():
+            if item.selected:
+                ce = CacheExport.getActionFromList(item.actions)
+                for _set in ce.get('objects'):
+                    if not exportutils.isConnected(_set):
+                        objects.append(_set)
+        return objects
+    
+    def objectsCompatible(self):
+        objects = []
+        for item in self.playlist.getItems():
+            if item.selected:
+                ce = CacheExport.getActionFromList(item.actions)
+                for _set in ce.get('objects'):
+                    if not exportutils.isCompatible(_set):
+                        objects.append(_set)
+        return []
+        return objects
 
     def export(self):
         # check if at least one item is selected
@@ -294,6 +315,24 @@ class Submitter(Form, Base):
                         msg='No shot selected to export',
                         icon=QMessageBox.Information)
             return
+        # check if the sets are connected with the combined models
+        if self.applyCacheButton.isChecked():
+            badObjects = self.objectsConnected()
+            if badObjects:
+                numObjects = len(badObjects)
+                s = 's' if numObjects > 1 else ''
+                detail = ''
+                for obj in badObjects:
+                    detail += obj +'\n'
+                btn = msgBox.showMessage(self, title='Connection Error',
+                                         msg='Could not find LD path for '+str(numObjects) +' set'+ s+
+                                         '\nIf you proceed, cache will not be applied to the models',
+                                         ques='Do you want to proceed?',
+                                         btns=QMessageBox.Yes|QMessageBox.No,
+                                         details = detail,
+                                         icon=QMessageBox.Information)
+                if btn == QMessageBox.No:
+                    return
         # check if at least one action is enaled for all selected items
         badShots = self.isActionEnabled()
         if badShots:
@@ -339,7 +378,7 @@ class Submitter(Form, Base):
                                 'keep only one audio file',
                                 icon=QMessageBox.Information)
             return
-        
+        # removes the directories from temp_shots_export directory in home directory
         try:
             for directory in os.listdir(exportutils.home):
                     shutil.rmtree(osp.join(exportutils.home, directory))
@@ -350,8 +389,6 @@ class Submitter(Form, Base):
             self.closeButton.setEnabled(False)
             self.progressBar.show()
             self.progressBar.setMinimum(0)
-            self.progressBar.setMaximum(len([i for i in self.items
-                                             if i.isChecked()]))
             state = PlayListUtils.getDisplayLayersState()
             exportutils.setOriginalCamera()
             exportutils.setOriginalFrame()
@@ -363,19 +400,30 @@ class Submitter(Form, Base):
             backend.playblast.showNameLabel()
             errors = {}
             self.progressBar.setValue(0)
+            generator = self._playlist.performActions(sound=self.audioButton.isChecked(),
+                                                      hd=self.hdButton.isChecked(),
+                                                      applyCache=self.applyCacheButton.isChecked())
+            self.progressBar.setMaximum(generator.next())
             qApp.processEvents()
-            count = 1
-            for pl_item in self._playlist.getItems():
-                try:
-                    if pl_item.selected:
-                        qApp.processEvents()
-                        pl_item.actions.perform(sound=self.audioButton.isChecked(),
-                                                hd=self.hdButton.isChecked())
-                        self.progressBar.setValue(count)
-                        qApp.processEvents()
-                        count += 1
-                except Exception as ex:
-                    errors[pl_item.name] = str(ex)
+            for i, val in enumerate(generator):
+                if isinstance(val, list):
+                    errors[val[0].name] = str(val[1])
+                self.progressBar.setValue(i + 1)
+                qApp.processEvents()
+                
+            #count = 1
+            #for pl_item in self._playlist.getItems():
+            #    try:
+            #        if pl_item.selected:
+            #            qApp.processEvents()
+            #            pl_item.actions.perform(sound=self.audioButton.isChecked(),
+            #                                    hd=self.hdButton.isChecked(),
+            #                                    applyCache=self.applyCacheButton.isChecked())
+            #            self.progressBar.setValue(count)
+            #            qApp.processEvents()
+            #            count += 1
+            #    except Exception as ex:
+            #        errors[pl_item.name] = str(ex)
             temp = ' shots ' if len(errors) > 1 else ' shot '
             if errors:
                 detail = ''
@@ -416,7 +464,7 @@ class Submitter(Form, Base):
             for error in cacheexport.errorsList:
                 detail += error +'\n\n'
             msgBox.showMessage(self, title='Error',
-                        msg='Unable to export cache for geo sets\n',
+                        msg='Errors occurred while exporting or applying cache\n',
                         details=detail,
                         icon=QMessageBox.Warning)
             cacheexport.errorsList[:] = []

@@ -13,6 +13,9 @@ import shutil
 import os
 import exportutils
 from exceptions import *
+import qutil
+reload(qutil)
+import time
 
 PlayListUtils = shotplaylist.PlaylistUtils
 Action = shotactions.Action
@@ -54,19 +57,87 @@ class CacheExport(Action):
             conf["start_time"] = item.getInFrame()
             conf["end_time"] = item.getOutFrame()
             conf["cache_dir"] = self.path.replace('\\', '/')
-            
+            exportutils.enableStretchMesh()
+
             self.exportCache(conf)
             
+            exportutils.disableStretchMesh()
             pc.delete(map(lambda x: x.getParent(),self.combineMeshes))
             del self.combineMeshes[:]
             
             pc.select(item.camera)
-            self.exportCam(self.path)
+            self.exportCam()
             
-    def exportCam(self, path):
+            if kwargs.get('applyCache'):
+                self.applyCache()
+            
+    def getCombinedMesh(self, ref):
+        '''returns the top level meshes from a reference node'''
+        meshes = []
+        if ref:
+            for node in pc.FileReference(ref).nodes():
+                if type(node) == pc.nt.Mesh:
+                    try:
+                        node.firstParent().firstParent()
+                    except pc.MayaNodeError:
+                        if not node.isIntermediate():
+                            meshes.append(node.firstParent())
+                    except Exception as ex:
+                        errorsList.append('Could not retrieve combined mesh for Reference\n'+ref.path+'\nReason: '+ str(ex))
+        return meshes
+    
+    def getMeshFromSet(self, ref):
+        meshes = []
+        if ref:
+            try:
+                _set = [obj for obj in pc.ls(et=pc.nt.ObjectSet) if obj.name().endswith('_geo_set')][0]
+                meshes = [shape
+                        for transform in pc.PyNode(_set).dsm.inputs(
+                                type = "transform")
+                        for shape in transform.getShapes(type = "mesh",
+                                                        ni = True)]
+                #return [pc.polyUnite(ch=1, mergeUVSets=1, *_set.members())[0]] # put the first element in list and return
+                return [pc.polyUnite(ch=1, mergeUVSets=1, *meshes)[0]] # put the first element in list and return
+            except:
+                return meshes
+        return meshes     
+        
+    def addRef(self, path):
+        try:
+            return pc.createReference(path)
+        except Exception as ex:
+            errorsList.append('Could not create Reference for\n'+ path +'\nReason: '+ str(ex))
+            
+    def applyCache(self):
+        '''applies cache on the combined models connected to geo_sets
+        and exports the combined models'''
+        mapping = {}
+        for objectSet in [setName for setName in self.get('objects')
+                          if type(pc.PyNode(setName)) == pc.nt.ObjectSet]:
+            cacheFile = osp.join(self.path, qutil.getNiceName(objectSet)+'_cache.xml')
+            if osp.exists(cacheFile):
+                path = pc.PyNode(objectSet).forCache.get()
+                if path:
+                    if osp.exists(path):
+                        ref = self.addRef(path)
+                        meshes = self.getCombinedMesh(ref)
+                        if len(meshes) != 1:
+                            meshes = self.getMeshFromSet(ref)
+                        if len(meshes) == 1:
+                            pc.mel.doImportCacheFile(cacheFile.replace('\\', '/'), "", meshes, list())
+                        else:
+                            errorsList.append('Unable to identify Combined mesh or ObjectSet\n'+ path +'\n'+ '\n'.join(meshes))
+                    else:
+                        errorsList.append('LD path does not exist for '+objectSet+'\n'+ path)
+                else:
+                    errorsList.append('LD path not added or specified for '+objectSet)
+            else:
+                errorsList.append('cache file does not exist\n'+ cacheFile)
+            
+    def exportCam(self):
         location = osp.splitext(cmds.file(q=True, location=True))
-        path = osp.join(osp.dirname(path), 'camera')
-        itemName = self._item.name.split(':')[-1].split('|')[-1]+'_cam'
+        path = osp.join(osp.dirname(self.path), 'camera')
+        itemName = qutil.getNiceName(self._item.name)+'_cam'
         tempFilePath = osp.join(self.tempPath, itemName)
         
         tempFilePath = pc.exportSelected(tempFilePath,

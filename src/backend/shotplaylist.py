@@ -32,6 +32,7 @@ class Playlist(object):
 
     def __init__(self, code='', populate=True):
         self._code = code
+        self.actionsOrder = ['PlayblastExport', 'CacheExport']
         if populate: self.populate()
 
     def getCode(self):
@@ -95,10 +96,23 @@ class Playlist(object):
                 items.append( item )
         return items
 
-    def performActions(self):
+    def performActions(self, **kwargs):
+        #for item in self.getItems():
+        #    if item.selected:
+        #        item.actions.perform()
+        allActions = []
         for item in self.getItems():
             if item.selected:
-                item.actions.perform()
+                allActions.extend([action for action in item.actions.getActions() if action.enabled])
+        yield len(allActions)
+        for actiontype in self.actionsOrder:
+            for action in allActions:
+                try:
+                    if action.__class__.__name__ == actiontype:
+                        action.perform(**kwargs)
+                        yield action
+                except Exception as ex:
+                    yield [action.plItem, ex]
 
 
 class PlaylistItem(object):
@@ -270,7 +284,6 @@ class PlaylistUtils(object):
     def isNodeValid(node):
         if (type(node)!=pc.nt.Transform or not
                 node.getShapes(type='camera')):
-            print node
             raise (TypeError,
                     "node must be a pc.nt.Transform of a camera shape")
         return True

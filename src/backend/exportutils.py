@@ -31,6 +31,7 @@ __fps_mapping__ = {
                    'ntscf': 'NTSC Field 60 fps', 'millisec': 'milliseconds',
                    'sec': 'seconds', 'min': 'minutes', 'hour': 'hours'
                    }
+__stretchMeshEnvelope__ = {}
 
 home = osp.join(osp.expanduser('~'), 'temp_shots_export')
 if not osp.exists(home):
@@ -38,6 +39,22 @@ if not osp.exists(home):
     
 def getAudioNodes():
     return pc.ls(type='audio')
+
+def isConnected(_set):
+    return pc.PyNode(_set).hasAttr('forCache') and pc.PyNode(_set).forCache.get()
+    
+def isCompatible(_set):
+    try:
+        return pc.polyEvaluate(_set, f=True) == pc.PyNode(_set).forCache.outputs()[0]
+    except Exception, ex:
+        pc.warning(str(ex))
+        return True
+    
+def removeFile(path):
+    try:
+        os.remove(path)
+    except Exception as ex:
+        pc.warning(ex)
 
 def copyFile(src, des):
     src = osp.normpath(src)
@@ -47,6 +64,7 @@ def copyFile(src, des):
         if osp.exists(existingFile):
             print 'removing %s...'%existingFile
             os.remove(existingFile)
+            print 'removed...'
         shutil.copy(src, des)
     except Exception as ex:
         try:
@@ -239,3 +257,22 @@ def getObjects():
         if 'geo_set' in str(_set).lower():
             objSets.append(_set.name())
     return objSets
+
+def enableStretchMesh():
+    global __stretchMeshEnvelope__
+    for node in pc.ls(type='stretchMesh'):
+        __stretchMeshEnvelope__[node] = node.envelope.get()
+        node.envelope.set(1.0)
+
+def restoreStretchMesh():
+    for node in pc.ls(type='stretchMesh'):
+        env = __stretchMeshEnvelope__.get(node)
+        if env is not None:
+            node.envelope.set(env)
+
+def disableStretchMesh():
+    global __stretchMeshEnvelope__
+    for node in pc.ls(type='stretchMesh'):
+        __stretchMeshEnvelope__[node] = node.envelope.get()
+        node.envelope.set(0.0)
+
