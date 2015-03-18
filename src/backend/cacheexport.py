@@ -57,11 +57,9 @@ class CacheExport(Action):
             conf["start_time"] = item.getInFrame()
             conf["end_time"] = item.getOutFrame()
             conf["cache_dir"] = self.path.replace('\\', '/')
-            exportutils.enableStretchMesh()
 
             self.exportCache(conf)
             
-            exportutils.disableStretchMesh()
             pc.delete(map(lambda x: x.getParent(),self.combineMeshes))
             del self.combineMeshes[:]
             
@@ -90,14 +88,16 @@ class CacheExport(Action):
         meshes = []
         if ref:
             try:
-                _set = [obj for obj in pc.ls(et=pc.nt.ObjectSet) if obj.name().endswith('_geo_set')][0]
+                _set = [obj for obj in ref.nodes() if
+                        ( obj.name().endswith('_geo_set') or obj.name().endswith('_geo_sets')  )
+                        and type(obj)==pc.nt.ObjectSet ][0]
                 meshes = [shape
-                        for transform in pc.PyNode(_set).dsm.inputs(
-                                type = "transform")
-                        for shape in transform.getShapes(type = "mesh",
-                                                        ni = True)]
+                        for transform in pc.PyNode(_set).dsm.inputs(type="transform")
+                        for shape in transform.getShapes(type = "mesh", ni = True)]
                 #return [pc.polyUnite(ch=1, mergeUVSets=1, *_set.members())[0]] # put the first element in list and return
-                return [pc.polyUnite(ch=1, mergeUVSets=1, *meshes)[0]] # put the first element in list and return
+                combinedMesh = pc.polyUnite(ch=1, mergeUVSets=1, *meshes)[0]
+                combinedMesh.rename(qutil.getNiceName(_set) + '_combinedMesh')
+                return [combinedMesh] # put the first element in list and return
             except:
                 return meshes
         return meshes     

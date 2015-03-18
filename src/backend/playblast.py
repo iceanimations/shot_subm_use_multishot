@@ -133,11 +133,9 @@ class PlayblastExport(Action):
             showDate()
             exportutils.turnResolutionGateOn(item.camera)
             exportutils.showFrameInfo(item)
-            exportutils.enableStretchMesh()
             
             self.makePlayblast(sound=kwargs.get('sound'))
             
-            exportutils.restoreStretchMesh()
             exportutils.removeFrameInfo()
             removeDate()
             showPolyCount()

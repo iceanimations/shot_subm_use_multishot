@@ -121,7 +121,7 @@ padding-bottom: 1px;</string>
          <x>0</x>
          <y>0</y>
          <width>747</width>
-         <height>611</height>
+         <height>612</height>
         </rect>
        </property>
        <layout class="QVBoxLayout" name="verticalLayout_4">
@@ -288,6 +288,9 @@ padding-bottom: 1px;</string>
         <property name="text">
          <string>HD</string>
         </property>
+        <property name="checked">
+         <bool>true</bool>
+        </property>
        </widget>
       </item>
       <item>
@@ -355,7 +358,7 @@ padding-bottom: 1px;</string>
      <x>0</x>
      <y>0</y>
      <width>767</width>
-     <height>22</height>
+     <height>21</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuOptions">
