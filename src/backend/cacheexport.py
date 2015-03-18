@@ -16,6 +16,7 @@ from exceptions import *
 import qutil
 reload(qutil)
 import time
+import re
 
 PlayListUtils = shotplaylist.PlaylistUtils
 Action = shotactions.Action
@@ -104,7 +105,12 @@ class CacheExport(Action):
         
     def addRef(self, path):
         try:
-            return pc.createReference(path)
+            namespace = os.path.basename(path)
+            namespace = os.path.splitext(namespace)[0]
+            match = re.match('(.*)([-._]v\d+)(.*)', namespace)
+            if match:
+                namespace = match.group(1) + match.group(3)
+            return pc.createReference(path, namespace=namespace, mnc=False)
         except Exception as ex:
             errorsList.append('Could not create Reference for\n'+ path +'\nReason: '+ str(ex))
             
