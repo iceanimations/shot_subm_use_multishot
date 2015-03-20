@@ -133,9 +133,11 @@ class PlayblastExport(Action):
             showDate()
             exportutils.turnResolutionGateOn(item.camera)
             exportutils.showFrameInfo(item)
-            
+            exportutils.setDefaultResolution((1280, 720))
+
             self.makePlayblast(sound=kwargs.get('sound'))
             
+            exportutils.restoreDefaultResolution()
             exportutils.removeFrameInfo()
             removeDate()
             showPolyCount()

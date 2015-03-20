@@ -97,8 +97,6 @@ def showFaceUi():
 def getDefaultResolution():
     node = pc.ls('defaultResolution')[0]
     res = node.width.get(), node.height.get()
-    if res == (1920, 1080):
-        res = (1280, 720)
     return res
 
 def setDefaultResolution(res):
