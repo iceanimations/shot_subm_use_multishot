@@ -898,8 +898,9 @@ class Item(Form2, Base2):
                 return
             action.objects = [obj.name() for obj in objects]
             self.pl_item.saveToScene()
-            print objects
-            exportutils.showInViewMessage(str(len(objects)) +' objects turned on')
+            length = len(objects)
+            temp = 's' if length > 1 else ''
+            exportutils.showInViewMessage(str(length) +' object%s turned on'%temp)
             
 
     def update(self):
