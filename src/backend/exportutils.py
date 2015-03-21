@@ -39,7 +39,7 @@ if not osp.exists(home):
     os.mkdir(home)
     
 def showInViewMessage(msg):
-    pc.inViewMessage(msg='<hl>%s<hl>'%msg, fade=True)
+    pc.inViewMessage(msg='<hl>%s<hl>'%msg, fade=True, position='midCenter')
     
 def switchCam(cam):
     pc.lookThru(cam)
