@@ -120,7 +120,7 @@
       <item>
        <widget class="QToolButton" name="addButton">
         <property name="toolTip">
-         <string>Turn selected objects on</string>
+         <string>Turn selected objects on for this shot</string>
         </property>
         <property name="text">
          <string>...</string>
@@ -130,7 +130,7 @@
       <item>
        <widget class="QToolButton" name="switchButton">
         <property name="toolTip">
-         <string>Switch camera</string>
+         <string>Switch to this shot</string>
         </property>
         <property name="text">
          <string>...</string>
