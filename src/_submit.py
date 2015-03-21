@@ -876,11 +876,31 @@ class Item(Form2, Base2):
         self.selectButton.clicked.connect(self.toggleSelected)
         self.deleteButton.clicked.connect(self.delete)
         self.titleFrame.mouseReleaseEvent = self.collapse
+        self.switchButton.clicked.connect(self.switchCamera)
+        self.addButton.clicked.connect(self.turnSelectedObjectsOn)
         
         self.label.mouseDoubleClickEvent = lambda event: self.openLocation()
         self.label_2.mouseDoubleClickEvent = lambda event: self.openLocation2()
         self.playblastPathLabel.mouseDoubleClickEvent = lambda event: self.openLocation()
         self.cachePathLabel.mouseDoubleClickEvent = lambda event: self.openLocation2()
+        
+    def switchCamera(self):
+        exportutils.switchCam(self.pl_item.camera)
+    
+    def turnSelectedObjectsOn(self):
+        action = CacheExport.getActionFromList(self.pl_item.actions)
+        if action:
+            objects = backend.findAllConnectedGeosets()
+            if not objects:
+                msgBox.showMessage(self, title='Shot Export',
+                                   msg='No objects found in the selection',
+                                   icon=QMessageBox.Information)
+                return
+            action.objects = [obj.name() for obj in objects]
+            self.pl_item.saveToScene()
+            print objects
+            exportutils.showInViewMessage(str(len(objects)) +' objects turned on')
+            
 
     def update(self):
         if self.pl_item:

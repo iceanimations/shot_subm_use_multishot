@@ -16,7 +16,11 @@ reload(exportutils)
 import cacheexport
 reload(cacheexport)
 
+import _geoset
+reload(_geoset)
+
 CacheExport = cacheexport.CacheExport
 Playlist = shotplaylist.Playlist
 PlayblastExport = playblast.PlayblastExport
 PlayListUtils = shotplaylist.PlaylistUtils
+findAllConnectedGeosets = _geoset.findAllConnectedGeosets

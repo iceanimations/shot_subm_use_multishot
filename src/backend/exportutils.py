@@ -9,6 +9,7 @@ osp = os.path
 import shutil
 import time
 import qutil
+import fillinout
 
 errorsList = []
 
@@ -36,6 +37,16 @@ __stretchMeshEnvelope__ = {}
 home = osp.join(osp.expanduser('~'), 'temp_shots_export')
 if not osp.exists(home):
     os.mkdir(home)
+    
+def showInViewMessage(msg):
+    pc.inViewMessage(msg='<hl>%s<hl>'%msg, fade=True)
+    
+def switchCam(cam):
+    pc.lookThru(cam)
+    sel = pc.ls(sl=True)
+    pc.select(cam)
+    fillinout.fill()
+    pc.select(sel)
     
 def getAudioNodes():
     return pc.ls(type='audio')
