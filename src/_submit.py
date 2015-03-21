@@ -867,6 +867,8 @@ class Item(Form2, Base2):
         self.deleteButton.setIcon(QIcon(osp.join(icon_path, 'ic_delete.png')))
         self.iconLabel.setStyleSheet(self.style%osp.join(icon_path,
                                                          'ic_collapse.png'))
+        self.switchButton.setIcon(QIcon(osp.join(icon_path, 'ic_switch_camera.png')))
+        self.addButton.setIcon(QIcon(osp.join(icon_path, 'ic_add_char.png')))
 
         self.editButton.clicked.connect(self.edit)
         self.clicked.connect(self.parentWin.itemClicked)

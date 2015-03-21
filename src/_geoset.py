@@ -83,17 +83,16 @@ def getFromScreen(x, y, x_rect=None, y_rect=None):
 
     #restore selection
     api.MGlobal.setActiveSelectionList(sel, api.MGlobal.kReplaceList)
-
+ 
     #return the objects as strings
     fromScreen = []
     objects.getSelectionStrings(fromScreen)
     return fromScreen
 
-if __name__ == '__main__':
-    import time
-    start = time.time()
-    objects = getFromScreen(0, 0, 4096, 4096)
-    sets = findAllConnectedGeosets(objects)
-    print time.time()-start
-    for i in sets: print i
-
+#if __name__ == '__main__':
+#    import time
+#    start = time.time()
+#    objects = getFromScreen(0, 0, 4096, 4096)
+#    sets = findAllConnectedGeosets(objects)
+#    print time.time()-start
+#    for i in sets: print i

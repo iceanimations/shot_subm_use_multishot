@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>358</width>
-    <height>131</height>
+    <height>137</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -22,6 +22,9 @@
    </property>
    <item>
     <widget class="QFrame" name="titleFrame">
+     <property name="cursor">
+      <cursorShape>PointingHandCursor</cursorShape>
+     </property>
      <property name="frameShape">
       <enum>QFrame::Panel</enum>
      </property>
@@ -108,6 +111,26 @@
        <widget class="QToolButton" name="deleteButton">
         <property name="toolTip">
          <string>Delete</string>
+        </property>
+        <property name="text">
+         <string>...</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QToolButton" name="addButton">
+        <property name="toolTip">
+         <string>Turn selected objects on</string>
+        </property>
+        <property name="text">
+         <string>...</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QToolButton" name="switchButton">
+        <property name="toolTip">
+         <string>Switch camera</string>
         </property>
         <property name="text">
          <string>...</string>
