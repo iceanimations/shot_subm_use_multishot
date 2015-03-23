@@ -56,17 +56,17 @@ def showNameLabel():
     global __HUD_USERNAME__
     if (pc.headsUpDisplay(__HUD_LABEL__, q=True, exists=True)):
         pc.headsUpDisplay(__HUD_LABEL__, remove=True) 
-    pc.headsUpDisplay(__HUD_LABEL__, section=2, block=0, blockSize="large", dfs="large", command=label)
+    pc.headsUpDisplay(__HUD_LABEL__, section=2, block=pc.headsUpDisplay(nfb=2), blockSize="large", dfs="large", command=label)
     if (pc.headsUpDisplay(__HUD_USERNAME__, q=True, exists=True)):
         pc.headsUpDisplay(__HUD_USERNAME__, remove=True)
-    pc.headsUpDisplay(__HUD_USERNAME__, section=3, block=0, blockSize="large", dfs="large", command=getUsername)
+    pc.headsUpDisplay(__HUD_USERNAME__, section=3, block=pc.headsUpDisplay(nfb=3), blockSize="large", dfs="large", command=getUsername)
     pc.headsUpDisplay(__HUD_USERNAME__, e=True, dfs='large')
 
 def showDate():
     global __HUD_DATE__
     if (pc.headsUpDisplay(__HUD_DATE__, q=True, exists=True)):
-        pc.headsUpDisplay(__HUD_DATE__, remove=True) 
-    pc.headsUpDisplay(__HUD_DATE__, section=1, block=0, blockSize="large", dfs="large",
+        pc.headsUpDisplay(__HUD_DATE__, remove=True)
+    pc.headsUpDisplay(__HUD_DATE__, section=1, block=pc.headsUpDisplay(nfb=1), blockSize="large", dfs="large",
                       command="import pymel.core as pc;pc.date(format=\"DD/MM/YYYY hh:mm\")") #"
 
 def removeNameLabel():
@@ -133,10 +133,11 @@ class PlayblastExport(Action):
             exportutils.turnResolutionGateOn(item.camera)
             exportutils.showFrameInfo(item)
             exportutils.setDefaultResolution((1280, 720))
+            exportutils.turn2dPanZoomOff(item.camera)
 
             self.makePlayblast(sound=kwargs.get('sound'))
             
-            exportutils.restoreDefaultResolution()
+            #exportutils.restoreDefaultResolution()
             exportutils.removeFrameInfo()
             removeDate()
             showPolyCount()
@@ -148,11 +149,13 @@ class PlayblastExport(Action):
                 exportutils.turnResolutionGateOffPer(item.camera)
                 exportutils.setDefaultResolution((1920, 1080))
                 exportutils.enableStretchMesh()
+                exportutils.removeFrameInfo(all=True)
                 self.makePlayblast(sound=kwargs.get('sound'), hd=True)
                 exportutils.restoreStretchMesh()
-                exportutils.restoreDefaultResolution()
-                #exportutils.turnResolutionGateOn(item.camera)
                 showNameLabel()
+            exportutils.restoreDefaultResolution()
+            exportutils.restore2dPanZoom(item.camera)
+            #exportutils.turnResolutionGateOn(item.camera)
         
     def addLayers(self, layers):
         self['layers'][:] = layers

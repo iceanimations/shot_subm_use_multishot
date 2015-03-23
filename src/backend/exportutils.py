@@ -33,10 +33,32 @@ __fps_mapping__ = {
                    'sec': 'seconds', 'min': 'minutes', 'hour': 'hours'
                    }
 __stretchMeshEnvelope__ = {}
+__2d_pane_zoom__ = {}
 
 home = osp.join(osp.expanduser('~'), 'temp_shots_export')
 if not osp.exists(home):
     os.mkdir(home)
+    
+def turn2dPanZoomOff(camera):
+    global __2d_pane_zoom__
+    enabled = camera.panZoomEnabled.get()
+    if enabled:
+        __2d_pane_zoom__['enabled'] = enabled
+        __2d_pane_zoom__['horizontalPan'] = camera.horizontalPan.get()
+        camera.horizontalPan.set(0)
+        __2d_pane_zoom__['verticalPan'] = camera.verticalPan.get()
+        camera.verticalPan.set(0)
+        __2d_pane_zoom__['zoom'] = camera.zoom.get()
+        camera.zoom.set(1)
+        camera.panZoomEnabled.set(0)
+
+def restore2dPanZoom(camera):
+    global __2d_pane_zoom__
+    if __2d_pane_zoom__:
+        camera.panZoomEnabled.set(__2d_pane_zoom__['enabled'])
+        camera.horizontalPan.set(__2d_pane_zoom__['horizontalPan'])
+        camera.verticalPan.set(__2d_pane_zoom__['verticalPan'])
+        camera.zoom.set(__2d_pane_zoom__['zoom'])
     
 def showInViewMessage(msg):
     pc.inViewMessage(msg='<hl>%s<hl>'%msg, fade=True, position='midCenter')
@@ -162,14 +184,15 @@ def showFrameInfo(pl_item):
     pc.Mel.eval('setCameraNamesVisibility(1)')
     pc.headsUpDisplay('HUDCameraNames', e=True, lfs='large', dfs='large', bs='large')
     
-def removeFrameInfo():
+def removeFrameInfo(all=False):
     if pc.headsUpDisplay(__hud_frame_1__, exists=True):
         pc.headsUpDisplay(__hud_frame_1__, rem=True)
     if pc.headsUpDisplay(__hud_frame_2__, exists=True):
         pc.headsUpDisplay(__hud_frame_2__, rem=True)
-    pc.Mel.eval('setCurrentFrameVisibility(0)')
-    pc.Mel.eval('setFocalLengthVisibility(0)')
-    #pc.Mel.eval('setCameraNamesVisibility(0)')
+    if all:
+        pc.Mel.eval('setCurrentFrameVisibility(0)')
+        pc.Mel.eval('setFocalLengthVisibility(0)')
+        pc.Mel.eval('setCameraNamesVisibility(0)')
 
 def turnResolutionGateOn(camera):
     oscan = 1.4
