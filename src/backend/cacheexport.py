@@ -170,6 +170,16 @@ class CacheExport(Action):
         self['objects'][:] = objects
     objects = property(getObjects, addObjects)
     
+    def appendObjects(self, objs):
+        objects = set([obj.name() for obj in self.objects])
+        objects.update(objs)
+        self.objects = list(objects)
+        
+    def removeObjects(self, objs):
+        objects = set([obj.name() for obj in self.objects])
+        objects.difference_update(objs)
+        self.objects = list(objects)
+    
     def MakeMeshes(self, objSets):
         self.combineMeshes = []
         for objectSet in [setName for setName in objSets

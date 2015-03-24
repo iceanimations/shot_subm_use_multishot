@@ -868,6 +868,8 @@ class Item(Form2, Base2):
         self.iconLabel.setStyleSheet(self.style%osp.join(icon_path,
                                                          'ic_collapse.png'))
         self.switchButton.setIcon(QIcon(osp.join(icon_path, 'ic_switch_camera.png')))
+        self.appendButton.setIcon(QIcon(osp.join(icon_path, 'ic_append_char.png')))
+        self.removeButton.setIcon(QIcon(osp.join(icon_path, 'ic_remove_char.png')))
         self.addButton.setIcon(QIcon(osp.join(icon_path, 'ic_add_char.png')))
 
         self.editButton.clicked.connect(self.edit)
@@ -877,7 +879,9 @@ class Item(Form2, Base2):
         self.deleteButton.clicked.connect(self.delete)
         self.titleFrame.mouseReleaseEvent = self.collapse
         self.switchButton.clicked.connect(self.switchCamera)
-        self.addButton.clicked.connect(self.turnSelectedObjectsOn)
+        self.appendButton.clicked.connect(self.turnSelectedObjectsOn)
+        self.removeButton.clicked.connect(self.turnSelectedObjectsOff)
+        self.addButton.clicked.connect(self.turnOnlySelectedObjectsOn)
         
         self.label.mouseDoubleClickEvent = lambda event: self.openLocation()
         self.label_2.mouseDoubleClickEvent = lambda event: self.openLocation2()
@@ -886,8 +890,39 @@ class Item(Form2, Base2):
         
     def switchCamera(self):
         exportutils.switchCam(self.pl_item.camera)
+        
+    def turnSelectedObjectsOff(self):
+        action = CacheExport.getActionFromList(self.pl_item.actions)
+        if action:
+            objects = backend.findAllConnectedGeosets()
+            if not objects:
+                msgBox.showMessage(self, title='Shot Export',
+                                   msg='No objects found in the selection',
+                                   icon=QMessageBox.Information)
+                return
+            action.removeObjects([obj.name() for obj in objects])
+            self.pl_item.saveToScene()
+            length = len(objects)
+            temp = 's' if length > 1 else ''
+            exportutils.showInViewMessage(str(length) +' object%s removed form %s'%(temp, self.pl_item.name))
+            
     
     def turnSelectedObjectsOn(self):
+        action = CacheExport.getActionFromList(self.pl_item.actions)
+        if action:
+            objects = backend.findAllConnectedGeosets()
+            if not objects:
+                msgBox.showMessage(self, title='Shot Export',
+                                   msg='No objects found in the selection',
+                                   icon=QMessageBox.Information)
+                return
+            action.appendObjects([obj.name() for obj in objects])
+            self.pl_item.saveToScene()
+            length = len(objects)
+            temp = 's' if length > 1 else ''
+            exportutils.showInViewMessage(str(length) +' object%s appended to %s'%(temp, self.pl_item.name))
+            
+    def turnOnlySelectedObjectsOn(self):
         action = CacheExport.getActionFromList(self.pl_item.actions)
         if action:
             objects = backend.findAllConnectedGeosets()
@@ -900,8 +935,7 @@ class Item(Form2, Base2):
             self.pl_item.saveToScene()
             length = len(objects)
             temp = 's' if length > 1 else ''
-            exportutils.showInViewMessage(str(length) +' object%s turned on'%temp)
-            
+            exportutils.showInViewMessage(str(length) +' object%s added to %s'%(temp, self.pl_item.name))
 
     def update(self):
         if self.pl_item:
