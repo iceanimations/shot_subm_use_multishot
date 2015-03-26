@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>358</width>
-    <height>137</height>
+    <height>139</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -130,7 +130,7 @@
       <item>
        <widget class="QToolButton" name="appendButton">
         <property name="toolTip">
-         <string>Append selected object(s) (Existing objects will not get removed)</string>
+         <string>Add sekected object(s)</string>
         </property>
         <property name="text">
          <string>...</string>

@@ -888,6 +888,8 @@ class Item(Form2, Base2):
         self.playblastPathLabel.mouseDoubleClickEvent = lambda event: self.openLocation()
         self.cachePathLabel.mouseDoubleClickEvent = lambda event: self.openLocation2()
         
+        self.addButton.hide()
+        
     def switchCamera(self):
         exportutils.switchCam(self.pl_item.camera)
         
