@@ -59,16 +59,16 @@ class CacheExport(Action):
             conf["end_time"] = item.getOutFrame()
             conf["cache_dir"] = self.path.replace('\\', '/')
 
-            self.exportCache(conf)
+            if self.exportCache(conf):
             
-            pc.delete(map(lambda x: x.getParent(),self.combineMeshes))
-            del self.combineMeshes[:]
-            
-            pc.select(item.camera)
-            self.exportCam()
-            
-            if kwargs.get('applyCache'):
-                self.applyCache()
+                pc.delete(map(lambda x: x.getParent(),self.combineMeshes))
+                del self.combineMeshes[:]
+                
+                pc.select(item.camera)
+                self.exportCam()
+                
+                if kwargs.get('applyCache'):
+                    self.applyCache()
             
     def getCombinedMesh(self, ref):
         '''returns the top level meshes from a reference node'''
@@ -89,8 +89,7 @@ class CacheExport(Action):
         meshes = []
         if ref:
             try:
-                _set = [obj for obj in ref.nodes() if
-                        ( obj.name().endswith('_geo_set') or obj.name().endswith('_geo_sets')  )
+                _set = [obj for obj in ref.nodes() if 'geo_set' in obj.name()
                         and type(obj)==pc.nt.ObjectSet ][0]
                 meshes = [shape
                         for transform in pc.PyNode(_set).dsm.inputs(type="transform")
@@ -117,7 +116,8 @@ class CacheExport(Action):
     def applyCache(self):
         '''applies cache on the combined models connected to geo_sets
         and exports the combined models'''
-        mapping = {}
+        objects = []
+        refs = []
         for objectSet in [setName for setName in self.get('objects')
                           if type(pc.PyNode(setName)) == pc.nt.ObjectSet]:
             cacheFile = osp.join(self.path, qutil.getNiceName(objectSet)+'_cache.xml')
@@ -129,21 +129,57 @@ class CacheExport(Action):
                         meshes = self.getCombinedMesh(ref)
                         if len(meshes) != 1:
                             meshes = self.getMeshFromSet(ref)
-                        if len(meshes) == 1:
-                            pc.mel.doImportCacheFile(cacheFile.replace('\\', '/'), "", meshes, list())
+                        if meshes:
+                            if len(meshes) == 1:
+                                pc.mel.doImportCacheFile(cacheFile.replace('\\', '/'), "", meshes, list())
+                                refs.append(ref)
+                                objects.append(meshes[0])
+                            else:
+                                errorsList.append('Unable to identify Combined mesh or ObjectSet\n'+ path +'\n'+ '\n'.join(meshes))
+                                pc.delete(meshes)
+                                ref.remove()
                         else:
-                            errorsList.append('Unable to identify Combined mesh or ObjectSet\n'+ path +'\n'+ '\n'.join(meshes))
+                           errorsList.append('Could not find or build combined mesh from\n'+path)
+                           ref.remove() 
                     else:
                         errorsList.append('LD path does not exist for '+objectSet+'\n'+ path)
                 else:
                     errorsList.append('LD path not added or specified for '+objectSet)
             else:
                 errorsList.append('cache file does not exist\n'+ cacheFile)
+        if objects:
+            self.exportCachedObjects(objects)
+            pc.delete(objects)
+            for ref in refs:
+                ref.remove()
+            pc.delete(pc.ls(type=pc.nt.FosterParent))
+            
+    def exportCachedObjects(self, objects):
+        pc.select(objects)
+        des = osp.join(self.path, 'cached_LDs')
+        
+        if not osp.exists(des):
+            try:
+                os.mkdir(des)
+            except Exception as ex:
+                errorsList.append(str(ex))
+                return
+        tempPath = osp.join(self.tempPath, self.plItem.name + qutil.getExtension())
+        tempPath = tempPath.replace('\\', '/')
+        try:
+            print tempPath
+            cmds.file(tempPath, f=True, pr=True, es=True, options='v=0;', type=qutil.getFileType(),
+                      ch=True, chn=True, exp=True, sh=True)
+            exportutils.copyFile(tempPath, des, depth=4)
+        except Exception as ex:
+            errorsList.append(str(ex))
+        finally:
+            pc.select(cl=True)
             
     def exportCam(self):
         location = osp.splitext(cmds.file(q=True, location=True))
         path = osp.join(osp.dirname(self.path), 'camera')
-        itemName = qutil.getNiceName(self._item.name)+'_cam'
+        itemName = qutil.getNiceName(self.plItem.name)+'_cam'+qutil.getExtension()
         tempFilePath = osp.join(self.tempPath, itemName)
         
         tempFilePath = pc.exportSelected(tempFilePath,
@@ -154,7 +190,7 @@ class CacheExport(Action):
                   shader = False,
                   constraints = False,
                   options="v=0",
-                  typ=cmds.file(q=True, type=True)[0],
+                  typ=qutil.getFileType(),
                   pr = False)
         exportutils.copyFile(tempFilePath, path)
         
@@ -179,6 +215,8 @@ class CacheExport(Action):
         objects = set([obj.name() for obj in self.objects])
         objects.difference_update(objs)
         self.objects = list(objects)
+        if len(self.objects) == 0:
+            self.enabled = False
     
     def MakeMeshes(self, objSets):
         self.combineMeshes = []
@@ -195,7 +233,7 @@ class CacheExport(Action):
                                   +'\nReason: This set is no longer a valid set')
                 continue
             combineMesh = pc.createNode("mesh")
-            pc.rename(combineMesh, objectSet.split(":")[-1].split('|')[-1]+"_cache")
+            pc.rename(combineMesh, qutil.getNiceName(objectSet)+"_cache")
             self.combineMeshes.append(combineMesh)
             polyUnite = pc.createNode("polyUnite")
             for i in xrange(0, len(meshes)):
@@ -221,3 +259,7 @@ class CacheExport(Action):
                     exportutils.copyFile(philePath, path)
             except Exception as ex:
                 pc.warning(str(ex))
+            return True
+        else:
+            errorsList.append('No objects found enabled in '+self.plItem.name)
+            return False

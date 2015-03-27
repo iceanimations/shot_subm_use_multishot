@@ -202,11 +202,13 @@ class PlayblastExport(Action):
                      quality=100, widthHeight=exportutils.getDefaultResolution(),
                      offScreen=1)
         tempFilePath += '.mov'
+        depth = 3
         if hd:
+            depth = 4
             path = osp.join(self.path, 'HD')
             try:
                 os.mkdir(path)
             except: pass
         else:
             path = self.path
-        exportutils.copyFile(tempFilePath, path)
+        exportutils.copyFile(tempFilePath, path, depth=depth)

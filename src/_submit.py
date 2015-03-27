@@ -324,9 +324,9 @@ class Submitter(Form, Base):
                 detail = ''
                 for obj in badObjects:
                     detail += obj +'\n'
-                btn = msgBox.showMessage(self, title='Connection Error',
+                btn = msgBox.showMessage(self, title='LD Error',
                                          msg='Could not find LD path for '+str(numObjects) +' set'+ s+
-                                         '\nIf you proceed, cache will not be applied to the models',
+                                         '\nIf you proceed, cache will not be applied to the LDs',
                                          ques='Do you want to proceed?',
                                          btns=QMessageBox.Yes|QMessageBox.No,
                                          details = detail,
@@ -363,21 +363,22 @@ class Submitter(Form, Base):
                         icon=QMessageBox.Information)
             return
         # checks for audio node and file
-        audioNodes = exportutils.getAudioNodes()
-        if self.audioButton.isChecked() and not audioNodes:
-            btn = msgBox.showMessage(self, title='No Audio',
-                                     msg='No audio found in the scene',
-                                     ques='Do you want to proceed anyway?',
-                                     icon=QMessageBox.Question,
-                                     btns=QMessageBox.Yes|QMessageBox.No)
-            if btn == QMessageBox.No:
+        if self.audioButton.isChecked():
+            audioNodes = exportutils.getAudioNodes()
+            if not audioNodes:
+                btn = msgBox.showMessage(self, title='No Audio',
+                                         msg='No audio found in the scene',
+                                         ques='Do you want to proceed anyway?',
+                                         icon=QMessageBox.Question,
+                                         btns=QMessageBox.Yes|QMessageBox.No)
+                if btn == QMessageBox.No:
+                    return
+            if len(audioNodes) > 1:
+                msgBox.showMessage(self, title='Audio Files',
+                                    msg='More than one audio files found in the scene, '+
+                                    'keep only one audio file',
+                                    icon=QMessageBox.Information)
                 return
-        if len(audioNodes) > 1:
-            msgBox.showMessage(self, title='Audio Files',
-                                msg='More than one audio files found in the scene, '+
-                                'keep only one audio file',
-                                icon=QMessageBox.Information)
-            return
         # removes the directories from temp_shots_export directory in home directory
         try:
             for directory in os.listdir(exportutils.home):
@@ -410,20 +411,6 @@ class Submitter(Form, Base):
                     errors[val[0].name] = str(val[1])
                 self.progressBar.setValue(i + 1)
                 qApp.processEvents()
-                
-            #count = 1
-            #for pl_item in self._playlist.getItems():
-            #    try:
-            #        if pl_item.selected:
-            #            qApp.processEvents()
-            #            pl_item.actions.perform(sound=self.audioButton.isChecked(),
-            #                                    hd=self.hdButton.isChecked(),
-            #                                    applyCache=self.applyCacheButton.isChecked())
-            #            self.progressBar.setValue(count)
-            #            qApp.processEvents()
-            #            count += 1
-            #    except Exception as ex:
-            #        errors[pl_item.name] = str(ex)
             temp = ' shots ' if len(errors) > 1 else ' shot '
             if errors:
                 detail = ''
@@ -922,7 +909,7 @@ class Item(Form2, Base2):
             self.pl_item.saveToScene()
             length = len(objects)
             temp = 's' if length > 1 else ''
-            exportutils.showInViewMessage(str(length) +' object%s appended to %s'%(temp, self.pl_item.name))
+            exportutils.showInViewMessage(str(length) +' object%s added to %s'%(temp, self.pl_item.name))
             
     def turnOnlySelectedObjectsOn(self):
         action = CacheExport.getActionFromList(self.pl_item.actions)

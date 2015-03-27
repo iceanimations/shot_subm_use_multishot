@@ -4,6 +4,7 @@ Created on Oct 14, 2014
 @author: qurban.ali
 '''
 import pymel.core as pc
+import maya.cmds as cmds
 import os
 osp = os.path
 import shutil
@@ -38,7 +39,7 @@ __2d_pane_zoom__ = {}
 home = osp.join(osp.expanduser('~'), 'temp_shots_export')
 if not osp.exists(home):
     os.mkdir(home)
-    
+
 def turn2dPanZoomOff(camera):
     global __2d_pane_zoom__
     enabled = camera.panZoomEnabled.get()
@@ -89,7 +90,7 @@ def removeFile(path):
     except Exception as ex:
         pc.warning(ex)
 
-def copyFile(src, des):
+def copyFile(src, des, depth=3):
     src = osp.normpath(src)
     des = osp.normpath(des)
     try:
@@ -101,10 +102,10 @@ def copyFile(src, des):
         shutil.copy(src, des)
     except Exception as ex:
         try:
-            basename3 = qutil.basename3(des)
-            tempPath = osp.join(home, basename3)
+            basename = qutil.basename(des, depth)
+            tempPath = osp.join(home, basename)
             if not osp.exists(tempPath):
-                qutil.mkdir(home, basename3)
+                qutil.mkdir(home, basename)
             tempPath2 = osp.join(tempPath, osp.basename(src))
             if osp.exists(tempPath2):
                 os.remove(tempPath2)
