@@ -39,6 +39,9 @@ __2d_pane_zoom__ = {}
 home = osp.join(osp.expanduser('~'), 'temp_shots_export')
 if not osp.exists(home):
     os.mkdir(home)
+    
+def addPbToDb():
+    pass
 
 def turn2dPanZoomOff(camera):
     global __2d_pane_zoom__

@@ -276,7 +276,7 @@ padding-bottom: 1px;</string>
       <item>
        <widget class="QCheckBox" name="applyCacheButton">
         <property name="enabled">
-         <bool>false</bool>
+         <bool>true</bool>
         </property>
         <property name="text">
          <string>Apply Cache</string>
