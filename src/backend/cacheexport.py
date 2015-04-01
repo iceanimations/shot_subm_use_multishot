@@ -233,7 +233,7 @@ class CacheExport(Action):
                                   +'\nReason: This set is no longer a valid set')
                 continue
             combineMesh = pc.createNode("mesh")
-            pc.rename(combineMesh, qutil.getNiceName(objectSet)+"_cache")
+            pc.rename(combineMesh, qutil.getNiceName(objectSet, full=True)+"_cache")
             self.combineMeshes.append(combineMesh)
             polyUnite = pc.createNode("polyUnite")
             for i in xrange(0, len(meshes)):
