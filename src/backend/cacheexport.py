@@ -148,7 +148,7 @@ class CacheExport(Action):
             else:
                 errorsList.append('cache file does not exist\n'+ cacheFile)
         if objects:
-            self.exportCachedObjects(objects)
+            self.exportCachedObjects(objects+[self.plItem.camera])
             pc.delete(objects)
             for ref in refs:
                 ref.remove()

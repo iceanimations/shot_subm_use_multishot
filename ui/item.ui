@@ -130,7 +130,7 @@
       <item>
        <widget class="QToolButton" name="appendButton">
         <property name="toolTip">
-         <string>Add sekected object(s)</string>
+         <string>Add selected object(s)</string>
         </property>
         <property name="text">
          <string>...</string>

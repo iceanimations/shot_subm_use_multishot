@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>767</width>
-    <height>756</height>
+    <width>761</width>
+    <height>745</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -120,8 +120,8 @@ padding-bottom: 1px;</string>
         <rect>
          <x>0</x>
          <y>0</y>
-         <width>745</width>
-         <height>611</height>
+         <width>741</width>
+         <height>600</height>
         </rect>
        </property>
        <layout class="QVBoxLayout" name="verticalLayout_4">
@@ -276,7 +276,7 @@ padding-bottom: 1px;</string>
       <item>
        <widget class="QCheckBox" name="applyCacheButton">
         <property name="enabled">
-         <bool>true</bool>
+         <bool>false</bool>
         </property>
         <property name="text">
          <string>Apply Cache</string>
@@ -366,8 +366,8 @@ padding-bottom: 1px;</string>
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>767</width>
-     <height>19</height>
+     <width>761</width>
+     <height>22</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuOptions">
