@@ -220,6 +220,8 @@ class CacheExport(Action):
     
     def MakeMeshes(self, objSets):
         self.combineMeshes = []
+        names = set()
+        count = 1
         for objectSet in [setName for setName in objSets
                           if type(pc.PyNode(setName)) != pc.nt.Mesh]:
             pc.select(pc.PyNode(objectSet).members())
@@ -233,7 +235,13 @@ class CacheExport(Action):
                                   +'\nReason: This set is no longer a valid set')
                 continue
             combineMesh = pc.createNode("mesh")
-            pc.rename(combineMesh, qutil.getNiceName(objectSet, full=True)+"_cache")
+            name = qutil.getNiceName(objectSet)+"_cache"
+            
+            if name in names:
+                name += str(count)
+                count += 1
+            names.add(name)
+            pc.rename(combineMesh, name)
             self.combineMeshes.append(combineMesh)
             polyUnite = pc.createNode("polyUnite")
             for i in xrange(0, len(meshes)):
