@@ -219,6 +219,7 @@ class CacheExport(Action):
             self.enabled = False
     
     def MakeMeshes(self, objSets):
+        mapping = {}
         self.combineMeshes = []
         names = set()
         count = 1
@@ -242,12 +243,22 @@ class CacheExport(Action):
                 count += 1
             names.add(name)
             pc.rename(combineMesh, name)
+            try:
+                mapping[osp.normpath(osp.join(self.path, name))] = pc.PyNode(objectSet).forCache.get()
+            except AttributeError:
+                mapping[osp.normpath(osp.join(self.path, name))] = ''
             self.combineMeshes.append(combineMesh)
             polyUnite = pc.createNode("polyUnite")
             for i in xrange(0, len(meshes)):
                 meshes[i].outMesh >> polyUnite.inputPoly[i]
                 meshes[i].worldMatrix[0] >> polyUnite.inputMat[i]
             polyUnite.output >> combineMesh.inMesh
+        if mapping:
+            try:
+                with open(osp.join(self.path, 'mappings.txt'), 'w') as f:
+                    f.write(str(mapping))
+            except Exception as ex:
+                errorsList.append(str(ex))
         pc.select(self.combineMeshes)
     
     def exportCache(self, conf):
