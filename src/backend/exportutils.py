@@ -25,6 +25,9 @@ __hud_frame_1__ = '__hud_frame_1__'
 __hud_frame_2__ = '__hud_frame_2__'
 __labelColor__ = None
 __valueColor__ = None
+__current_frame__ = None
+__camera_name__ = None
+__focal_length__ = None
 __DEFAULT_RESOLUTION__ = None
 __fps_mapping__ = {
                    'game': '15 fps', 'film': 'Film (24 fps)',
@@ -172,6 +175,7 @@ def getFrameRate():
     return fps if fps else unit
 
 def showFrameInfo(pl_item):
+    global __camera_name__
     fps = getFrameRate()
     inOut = str(pl_item.inFrame) +' - '+ str(pl_item.outFrame)
     def getFps():
@@ -181,6 +185,9 @@ def showFrameInfo(pl_item):
     removeFrameInfo()
     pc.headsUpDisplay(__hud_frame_1__, lfs='large', label='FPS:', section=6, block=pc.headsUpDisplay(nfb=6), blockSize='large', dfs='large', command=getFps)
     pc.headsUpDisplay(__hud_frame_2__, lfs='large', label='IN OUT:', section=6, block=pc.headsUpDisplay(nfb=6), blockSize='large', dfs='large', command=getInOut)
+    __camera_name__ = pc.optionVar(q='cameraNamesVisibility')
+    __current_frame__ = pc.optionVar(q='currentFrameVisibility')
+    __focal_length__ = pc.optionVar(q='focalLengthVisibility')
     pc.Mel.eval('setCurrentFrameVisibility(1)')
     pc.headsUpDisplay('HUDCurrentFrame', e=True, lfs='large', dfs='large', bs='large')
     pc.Mel.eval('setFocalLengthVisibility(1)')
@@ -197,6 +204,14 @@ def removeFrameInfo(all=False):
         pc.Mel.eval('setCurrentFrameVisibility(0)')
         pc.Mel.eval('setFocalLengthVisibility(0)')
         pc.Mel.eval('setCameraNamesVisibility(0)')
+        
+def restoreFrameInfo():
+    if __camera_name__:
+        pc.Mel.eval('setCameraNamesVisibility(1)')
+    if __current_frame__:
+        pc.Mel.eval('setCurrentFrameVisibility(1)')
+    if __focal_length__:
+        pc.Mel.eval('setFocalLengthVisibility(1)')
 
 def turnResolutionGateOn(camera):
     oscan = 1.4

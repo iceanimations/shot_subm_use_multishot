@@ -154,6 +154,7 @@ class PlayblastExport(Action):
             exportutils.restoreDefaultResolution()
             exportutils.restore2dPanZoom(item.camera)
             #exportutils.turnResolutionGateOn(item.camera)
+        exportutils.restoreFrameInfo()
         
     def addLayers(self, layers):
         self['layers'][:] = layers
