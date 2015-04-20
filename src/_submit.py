@@ -15,6 +15,7 @@ import re
 import subprocess
 import backend
 import appUsageApp
+reload(appUsageApp)
 reload(backend)
 import msgBox
 
