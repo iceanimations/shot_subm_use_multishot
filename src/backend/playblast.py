@@ -10,6 +10,8 @@ import exportutils
 import shutil
 import maya.cmds as cmds
 from exceptions import *
+import json
+import qutil
 
 
 
@@ -194,7 +196,7 @@ class PlayblastExport(Action):
             if not sound:
                 sound = ['']
         else: sound=['']
-        itemName = item.name.split(':')[-1].split('|')[-1]
+        itemName = qutil.getNiceName(item.name)
         tempFilePath = osp.join(self.tempPath, itemName)
         pc.playblast(format='qt', fo=1, st=item.getInFrame(), et=item.getOutFrame(),
                      f=tempFilePath,
@@ -212,4 +214,11 @@ class PlayblastExport(Action):
             except: pass
         else:
             path = self.path
+            infoFilePath = osp.join(osp.dirname(tempFilePath), item.camera.name()+'.json')
+            with open(infoFilePath, 'w') as infoFile:
+                infoFile.write(json.dumps({'user': getUsername(), 'time': pc.date(format="DD/MM/YYYY hh:mm"),
+                                           'inOut': '-'.join([str(item.inFrame), str(item.outFrame)]),
+                                           'name': itemName,
+                                           'focalLength': item.camera.focalLength.get()}))
+            exportutils.copyFile(infoFilePath, path, depth=depth)
         exportutils.copyFile(tempFilePath, path, depth=depth)
