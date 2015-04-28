@@ -214,7 +214,7 @@ class PlayblastExport(Action):
             except: pass
         else:
             path = self.path
-            infoFilePath = osp.join(osp.dirname(tempFilePath), item.camera.name()+'.json')
+            infoFilePath = osp.join(osp.dirname(tempFilePath), itemName+'.json')
             with open(infoFilePath, 'w') as infoFile:
                 infoFile.write(json.dumps({'user': getUsername(), 'time': pc.date(format="DD/MM/YYYY hh:mm"),
                                            'inOut': '-'.join([str(item.inFrame), str(item.outFrame)]),
