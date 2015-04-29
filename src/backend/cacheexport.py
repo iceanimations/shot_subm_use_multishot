@@ -8,14 +8,12 @@ import shotplaylist
 import pymel.core as pc
 import maya.cmds as cmds
 import os.path as osp
-from collections import OrderedDict
 import shutil
 import os
 import exportutils
 from exceptions import *
 import qutil
 reload(qutil)
-import time
 import re
 
 PlayListUtils = shotplaylist.PlaylistUtils
@@ -50,8 +48,8 @@ class CacheExport(Action):
         conf["store_doubles_as_float"] = 1
         conf["cache_format"] = "mcc"
         conf["do_texture_export"] = 1
-        conf["texture_export_data"] = [("(?i).*nano.*",
-            ["ExpRenderPlaneMtl.outColor"])]
+        conf["texture_export_data"] = [
+                ("(?i).*nano.*", ["ExpRenderPlaneMtl.outColor"])]
         conf["texture_resX"] = 1024
         conf["texture_resY"] = 1024
         return conf
@@ -71,6 +69,7 @@ class CacheExport(Action):
 
                 pc.select(item.camera)
                 self.exportCam()
+
 
     def exportCam(self):
         location = osp.splitext(cmds.file(q=True, location=True))
@@ -218,16 +217,23 @@ class CacheExport(Action):
             pc.currentTime(curtime, e=True)
 
             for name, attr in self.getAnimatedTextures(conf):
-                try:
-                    fileImageName = osp.join(tempFilePath,
-                            '.'.join([name, num, 'iff']))
-                    newobj = pc.convertSolidTx(attr, samplePlane=True, rx=rx, ry=ry,
-                            fil='tif', fileImageName=fileImageName)
-                    pc.delete(newobj)
-                    textures_exported = True
+                fileImageName = osp.join(tempFilePath,
+                        '.'.join([name, num, 'iff']))
+                newobj = pc.convertSolidTx(attr, samplePlane=True, rx=rx, ry=ry,
+                        fil='tif', fileImageName=fileImageName)
+                pc.delete(newobj)
+                textures_exported = True
 
-                except Exception as ex:
-                    pc.warning(str(ex))
+        target_dir = osp.join(self.path, 'tex')
+        try:
+            if not osp.exists(target_dir): 
+                os.mkdir(target_dir)
+        except:
+            pass
+        for phile in os.listdir(tempFilePath):
+            philePath = osp.join(tempFilePath, phile)
+            exportutils.copyFile(philePath, target_dir, depth=4)
 
         return textures_exported
+
 
