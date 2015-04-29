@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>767</width>
-    <height>756</height>
+    <width>761</width>
+    <height>745</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -120,8 +120,8 @@ padding-bottom: 1px;</string>
         <rect>
          <x>0</x>
          <y>0</y>
-         <width>747</width>
-         <height>612</height>
+         <width>739</width>
+         <height>600</height>
         </rect>
        </property>
        <layout class="QVBoxLayout" name="verticalLayout_4">
@@ -275,6 +275,9 @@ padding-bottom: 1px;</string>
       </item>
       <item>
        <widget class="QCheckBox" name="applyCacheButton">
+        <property name="enabled">
+         <bool>false</bool>
+        </property>
         <property name="text">
          <string>Apply Cache</string>
         </property>
@@ -282,6 +285,9 @@ padding-bottom: 1px;</string>
       </item>
       <item>
        <widget class="QCheckBox" name="hdButton">
+        <property name="enabled">
+         <bool>true</bool>
+        </property>
         <property name="toolTip">
          <string>Also make HD playblast</string>
         </property>
@@ -295,6 +301,9 @@ padding-bottom: 1px;</string>
       </item>
       <item>
        <widget class="QCheckBox" name="audioButton">
+        <property name="enabled">
+         <bool>false</bool>
+        </property>
         <property name="toolTip">
          <string>Include audio in playblast</string>
         </property>
@@ -346,7 +355,7 @@ padding-bottom: 1px;</string>
        </size>
       </property>
       <property name="value">
-       <number>24</number>
+       <number>0</number>
       </property>
      </widget>
     </item>
@@ -357,8 +366,8 @@ padding-bottom: 1px;</string>
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>767</width>
-     <height>21</height>
+     <width>761</width>
+     <height>19</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuOptions">

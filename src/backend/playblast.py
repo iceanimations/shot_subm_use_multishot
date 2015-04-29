@@ -10,6 +10,8 @@ import exportutils
 import shutil
 import maya.cmds as cmds
 from exceptions import *
+import json
+import qutil
 
 
 
@@ -56,17 +58,17 @@ def showNameLabel():
     global __HUD_USERNAME__
     if (pc.headsUpDisplay(__HUD_LABEL__, q=True, exists=True)):
         pc.headsUpDisplay(__HUD_LABEL__, remove=True) 
-    pc.headsUpDisplay(__HUD_LABEL__, section=2, block=0, blockSize="large", dfs="large", command=label)
+    pc.headsUpDisplay(__HUD_LABEL__, section=2, block=pc.headsUpDisplay(nfb=2), blockSize="large", dfs="large", command=label)
     if (pc.headsUpDisplay(__HUD_USERNAME__, q=True, exists=True)):
         pc.headsUpDisplay(__HUD_USERNAME__, remove=True)
-    pc.headsUpDisplay(__HUD_USERNAME__, section=3, block=0, blockSize="large", dfs="large", command=getUsername)
+    pc.headsUpDisplay(__HUD_USERNAME__, section=3, block=pc.headsUpDisplay(nfb=3), blockSize="large", dfs="large", command=getUsername)
     pc.headsUpDisplay(__HUD_USERNAME__, e=True, dfs='large')
 
 def showDate():
     global __HUD_DATE__
     if (pc.headsUpDisplay(__HUD_DATE__, q=True, exists=True)):
-        pc.headsUpDisplay(__HUD_DATE__, remove=True) 
-    pc.headsUpDisplay(__HUD_DATE__, section=1, block=0, blockSize="large", dfs="large",
+        pc.headsUpDisplay(__HUD_DATE__, remove=True)
+    pc.headsUpDisplay(__HUD_DATE__, section=1, block=pc.headsUpDisplay(nfb=1), blockSize="large", dfs="large",
                       command="import pymel.core as pc;pc.date(format=\"DD/MM/YYYY hh:mm\")") #"
 
 def removeNameLabel():
@@ -134,10 +136,11 @@ class PlayblastExport(Action):
             exportutils.turnResolutionGateOn(item.camera)
             exportutils.showFrameInfo(item)
             exportutils.setDefaultResolution((1280, 720))
+            exportutils.turn2dPanZoomOff(item.camera)
 
             self.makePlayblast(sound=kwargs.get('sound'))
             
-            exportutils.restoreDefaultResolution()
+            #exportutils.restoreDefaultResolution()
             exportutils.removeFrameInfo()
             removeDate()
             showPolyCount()
@@ -148,12 +151,13 @@ class PlayblastExport(Action):
                 removeNameLabel()
                 exportutils.turnResolutionGateOffPer(item.camera)
                 exportutils.setDefaultResolution((1920, 1080))
-                exportutils.enableStretchMesh()
+                exportutils.removeFrameInfo(all=True)
                 self.makePlayblast(sound=kwargs.get('sound'), hd=True)
-                exportutils.restoreStretchMesh()
-                exportutils.restoreDefaultResolution()
-                #exportutils.turnResolutionGateOn(item.camera)
                 showNameLabel()
+            exportutils.restoreDefaultResolution()
+            exportutils.restore2dPanZoom(item.camera)
+            #exportutils.turnResolutionGateOn(item.camera)
+        exportutils.restoreFrameInfo()
         
     def addLayers(self, layers):
         self['layers'][:] = layers
@@ -193,7 +197,7 @@ class PlayblastExport(Action):
             if not sound:
                 sound = ['']
         else: sound=['']
-        itemName = item.name.split(':')[-1].split('|')[-1]
+        itemName = qutil.getNiceName(item.name)
         tempFilePath = osp.join(self.tempPath, itemName)
         pc.playblast(format='qt', fo=1, st=item.getInFrame(), et=item.getOutFrame(),
                      f=tempFilePath,
@@ -202,11 +206,20 @@ class PlayblastExport(Action):
                      quality=100, widthHeight=exportutils.getDefaultResolution(),
                      offScreen=1)
         tempFilePath += '.mov'
+        depth = 3
         if hd:
+            depth = 4
             path = osp.join(self.path, 'HD')
             try:
                 os.mkdir(path)
             except: pass
         else:
             path = self.path
-        exportutils.copyFile(tempFilePath, path)
+            infoFilePath = osp.join(osp.dirname(tempFilePath), itemName+'.json')
+            with open(infoFilePath, 'w') as infoFile:
+                infoFile.write(json.dumps({'user': getUsername(), 'time': pc.date(format="DD/MM/YYYY hh:mm"),
+                                           'inOut': '-'.join([str(item.inFrame), str(item.outFrame)]),
+                                           'name': itemName,
+                                           'focalLength': item.camera.focalLength.get()}))
+            exportutils.copyFile(infoFilePath, path, depth=depth)
+        exportutils.copyFile(tempFilePath, path, depth=depth)

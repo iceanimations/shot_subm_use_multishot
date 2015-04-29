@@ -4,11 +4,13 @@ Created on Oct 14, 2014
 @author: qurban.ali
 '''
 import pymel.core as pc
+import maya.cmds as cmds
 import os
 osp = os.path
 import shutil
 import time
 import qutil
+import fillinout
 
 errorsList = []
 
@@ -23,6 +25,9 @@ __hud_frame_1__ = '__hud_frame_1__'
 __hud_frame_2__ = '__hud_frame_2__'
 __labelColor__ = None
 __valueColor__ = None
+__current_frame__ = None
+__camera_name__ = None
+__focal_length__ = None
 __DEFAULT_RESOLUTION__ = None
 __fps_mapping__ = {
                    'game': '15 fps', 'film': 'Film (24 fps)',
@@ -32,10 +37,45 @@ __fps_mapping__ = {
                    'sec': 'seconds', 'min': 'minutes', 'hour': 'hours'
                    }
 __stretchMeshEnvelope__ = {}
+__2d_pane_zoom__ = {}
 
 home = osp.join(osp.expanduser('~'), 'temp_shots_export')
 if not osp.exists(home):
     os.mkdir(home)
+    
+def addPbToDb():
+    pass
+
+def turn2dPanZoomOff(camera):
+    global __2d_pane_zoom__
+    enabled = camera.panZoomEnabled.get()
+    if enabled:
+        __2d_pane_zoom__['enabled'] = enabled
+        __2d_pane_zoom__['horizontalPan'] = camera.horizontalPan.get()
+        camera.horizontalPan.set(0)
+        __2d_pane_zoom__['verticalPan'] = camera.verticalPan.get()
+        camera.verticalPan.set(0)
+        __2d_pane_zoom__['zoom'] = camera.zoom.get()
+        camera.zoom.set(1)
+        camera.panZoomEnabled.set(0)
+
+def restore2dPanZoom(camera):
+    global __2d_pane_zoom__
+    if __2d_pane_zoom__:
+        camera.panZoomEnabled.set(__2d_pane_zoom__['enabled'])
+        camera.horizontalPan.set(__2d_pane_zoom__['horizontalPan'])
+        camera.verticalPan.set(__2d_pane_zoom__['verticalPan'])
+        camera.zoom.set(__2d_pane_zoom__['zoom'])
+    
+def showInViewMessage(msg):
+    pc.inViewMessage(msg='<hl>%s<hl>'%msg, fade=True, position='midCenter')
+    
+def switchCam(cam):
+    pc.lookThru(cam)
+    sel = pc.ls(sl=True)
+    pc.select(cam)
+    fillinout.fill()
+    pc.select(sel)
     
 def getAudioNodes():
     return pc.ls(type='audio')
@@ -56,7 +96,7 @@ def removeFile(path):
     except Exception as ex:
         pc.warning(ex)
 
-def copyFile(src, des):
+def copyFile(src, des, depth=3):
     src = osp.normpath(src)
     des = osp.normpath(des)
     try:
@@ -68,10 +108,10 @@ def copyFile(src, des):
         shutil.copy(src, des)
     except Exception as ex:
         try:
-            basename3 = qutil.basename3(des)
-            tempPath = osp.join(home, basename3)
+            basename = qutil.basename(des, depth)
+            tempPath = osp.join(home, basename)
             if not osp.exists(tempPath):
-                qutil.mkdir(home, basename3)
+                qutil.mkdir(home, basename)
             tempPath2 = osp.join(tempPath, osp.basename(src))
             if osp.exists(tempPath2):
                 os.remove(tempPath2)
@@ -139,6 +179,7 @@ def getFrameRate():
     return fps if fps else unit
 
 def showFrameInfo(pl_item):
+    global __camera_name__
     fps = getFrameRate()
     inOut = str(pl_item.inFrame) +' - '+ str(pl_item.outFrame)
     def getFps():
@@ -148,6 +189,9 @@ def showFrameInfo(pl_item):
     removeFrameInfo()
     pc.headsUpDisplay(__hud_frame_1__, lfs='large', label='FPS:', section=6, block=pc.headsUpDisplay(nfb=6), blockSize='large', dfs='large', command=getFps)
     pc.headsUpDisplay(__hud_frame_2__, lfs='large', label='IN OUT:', section=6, block=pc.headsUpDisplay(nfb=6), blockSize='large', dfs='large', command=getInOut)
+    __camera_name__ = pc.optionVar(q='cameraNamesVisibility')
+    __current_frame__ = pc.optionVar(q='currentFrameVisibility')
+    __focal_length__ = pc.optionVar(q='focalLengthVisibility')
     pc.Mel.eval('setCurrentFrameVisibility(1)')
     pc.headsUpDisplay('HUDCurrentFrame', e=True, lfs='large', dfs='large', bs='large')
     pc.Mel.eval('setFocalLengthVisibility(1)')
@@ -155,14 +199,23 @@ def showFrameInfo(pl_item):
     pc.Mel.eval('setCameraNamesVisibility(1)')
     pc.headsUpDisplay('HUDCameraNames', e=True, lfs='large', dfs='large', bs='large')
     
-def removeFrameInfo():
+def removeFrameInfo(all=False):
     if pc.headsUpDisplay(__hud_frame_1__, exists=True):
         pc.headsUpDisplay(__hud_frame_1__, rem=True)
     if pc.headsUpDisplay(__hud_frame_2__, exists=True):
         pc.headsUpDisplay(__hud_frame_2__, rem=True)
-    pc.Mel.eval('setCurrentFrameVisibility(0)')
-    pc.Mel.eval('setFocalLengthVisibility(0)')
-    #pc.Mel.eval('setCameraNamesVisibility(0)')
+    if all:
+        pc.Mel.eval('setCurrentFrameVisibility(0)')
+        pc.Mel.eval('setFocalLengthVisibility(0)')
+        pc.Mel.eval('setCameraNamesVisibility(0)')
+        
+def restoreFrameInfo():
+    if __camera_name__:
+        pc.Mel.eval('setCameraNamesVisibility(1)')
+    if __current_frame__:
+        pc.Mel.eval('setCurrentFrameVisibility(1)')
+    if __focal_length__:
+        pc.Mel.eval('setFocalLengthVisibility(1)')
 
 def turnResolutionGateOn(camera):
     oscan = 1.4
