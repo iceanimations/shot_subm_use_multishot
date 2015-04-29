@@ -64,6 +64,8 @@ class CacheExport(Action):
 
             if self.exportCache(conf):
 
+                self.exportAnimatedTextures(conf)
+
                 pc.delete(map(lambda x: x.getParent(),self.combineMeshes))
                 del self.combineMeshes[:]
 
@@ -228,8 +230,9 @@ class CacheExport(Action):
         try:
             if not osp.exists(target_dir): 
                 os.mkdir(target_dir)
-        except:
-            pass
+        except Exception as ex:
+            errorsList.append(str(ex))
+
         for phile in os.listdir(tempFilePath):
             philePath = osp.join(tempFilePath, phile)
             exportutils.copyFile(philePath, target_dir, depth=4)
