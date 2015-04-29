@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>358</width>
-    <height>131</height>
+    <height>139</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -22,6 +22,9 @@
    </property>
    <item>
     <widget class="QFrame" name="titleFrame">
+     <property name="cursor">
+      <cursorShape>PointingHandCursor</cursorShape>
+     </property>
      <property name="frameShape">
       <enum>QFrame::Panel</enum>
      </property>
@@ -108,6 +111,46 @@
        <widget class="QToolButton" name="deleteButton">
         <property name="toolTip">
          <string>Delete</string>
+        </property>
+        <property name="text">
+         <string>...</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QToolButton" name="addButton">
+        <property name="toolTip">
+         <string>Add only selected object(s) (Existing will get removed)</string>
+        </property>
+        <property name="text">
+         <string>...</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QToolButton" name="appendButton">
+        <property name="toolTip">
+         <string>Add selected object(s)</string>
+        </property>
+        <property name="text">
+         <string>...</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QToolButton" name="removeButton">
+        <property name="toolTip">
+         <string>Remove selected object(s)</string>
+        </property>
+        <property name="text">
+         <string>...</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QToolButton" name="switchButton">
+        <property name="toolTip">
+         <string>Switch to this shot</string>
         </property>
         <property name="text">
          <string>...</string>
