@@ -203,7 +203,7 @@ class CacheExport(Action):
         if not self.get('objects'):
             return False
 
-        tempFilePath = osp.join(self.tempPath, 'cache', 'tex')
+        tempFilePath = osp.join(self.tempPath, 'tex')
         if osp.exists(tempFilePath):
             shutil.rmtree(tempFilePath)
         os.mkdir(tempFilePath)
@@ -228,7 +228,7 @@ class CacheExport(Action):
 
         target_dir = osp.join(self.path, 'tex')
         try:
-            if not osp.exists(target_dir): 
+            if not osp.exists(target_dir):
                 os.mkdir(target_dir)
         except Exception as ex:
             errorsList.append(str(ex))

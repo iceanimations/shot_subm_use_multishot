@@ -101,7 +101,7 @@ def copyFile(src, des, depth=3):
     des = osp.normpath(des)
     try:
         existingFile = osp.join(des, osp.basename(src))
-        if osp.exists(existingFile):
+        if osp.exists(existingFile) and osp.isfile(existingFile):
             print 'removing %s...'%existingFile
             os.remove(existingFile)
             print 'removed...'
