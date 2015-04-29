@@ -50,8 +50,8 @@ class CacheExport(Action):
         conf["store_doubles_as_float"] = 1
         conf["cache_format"] = "mcc"
         conf["do_texture_export"] = 1
-        conf["texture_export_data"] = [
-                ("(?i).*nano.*", ["ExpRenderPlaneMtl.outColor"])]
+        conf["texture_export_data"] = [("(?i).*nano.*",
+            ["ExpRenderPlaneMtl.outColor"])]
         conf["texture_resX"] = 1024
         conf["texture_resY"] = 1024
         return conf
@@ -188,11 +188,12 @@ class CacheExport(Action):
         for key, attrs in conf['texture_export_data']:
             for obj in self.objects:
                 if re.match( key, obj.name() ):
-                    name = obj.name().split('|')
-                    namespace = ':'.join(name.split(':'))
+                    name = obj.name()
+                    namespace = ':'.join(name.split(':')[:-1])
                     for attr in attrs:
+                        nombre = namespace + '.' + attr
                         attr = pc.Attribute(namespace + ':' + attr)
-                        texture_attrs.append((namespace, attr))
+                        texture_attrs.append((nombre, attr))
         return texture_attrs
 
     def exportAnimatedTextures(self, conf):
@@ -201,15 +202,15 @@ class CacheExport(Action):
         if not self.get('objects'):
             return False
 
-        cache_dir = conf.get('cache_dir')
         tempFilePath = osp.join(self.tempPath, 'cache', 'tex')
-        shutil.rmtree(tempFilePath)
+        if osp.exists(tempFilePath):
+            shutil.rmtree(tempFilePath)
         os.mkdir(tempFilePath)
 
-        start_time = conf['start_time']
-        end_time = conf['end_time']
-        rX = conf['texture_resX']
-        rY = conf['texture_resY']
+        start_time = int(self._item.getInFrame())
+        end_time = int(self._item.getOutFrame())
+        rx = conf['texture_resX']
+        ry = conf['texture_resY']
         textures_exported = False
 
         for curtime in range(start_time, end_time+1):
@@ -218,12 +219,14 @@ class CacheExport(Action):
 
             for name, attr in self.getAnimatedTextures(conf):
                 try:
-                    newobj = pc.convertSolidTx(attr, samplePlane=True, rX=rX, rY=rY,
-                            fil='tif', fileImageName='.'.join(name, num, 'iff'))
+                    fileImageName = osp.join(tempFilePath,
+                            '.'.join([name, num, 'iff']))
+                    newobj = pc.convertSolidTx(attr, samplePlane=True, rx=rx, ry=ry,
+                            fil='tif', fileImageName=fileImageName)
                     pc.delete(newobj)
                     textures_exported = True
 
-                except Excepion as ex:
+                except Exception as ex:
                     pc.warning(str(ex))
 
         return textures_exported
