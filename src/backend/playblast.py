@@ -216,10 +216,21 @@ class PlayblastExport(Action):
         else:
             path = self.path
             infoFilePath = osp.join(osp.dirname(tempFilePath), itemName+'.json')
-            with open(infoFilePath, 'w') as infoFile:
-                infoFile.write(json.dumps({'user': getUsername(), 'time': pc.date(format="DD/MM/YYYY hh:mm"),
-                                           'inOut': '-'.join([str(item.inFrame), str(item.outFrame)]),
-                                           'name': itemName,
-                                           'focalLength': item.camera.focalLength.get()}))
+            infoFileOrigPath = osp.join(path, itemName+'.json')
+            data = ''
+            if osp.exists(infoFileOrigPath):
+                with open(infoFileOrigPath) as ifr:
+                    data = json.loads(ifr.read())
+            with open(infoFilePath, 'a') as infoFile:
+                newData = [{'user': getUsername(), 'time': pc.date(format="DD/MM/YYYY hh:mm"),
+                            'inOut': '-'.join([str(item.inFrame), str(item.outFrame)]),
+                            'name': itemName,
+                            'focalLength': item.camera.focalLength.get()}]
+                if data:
+                    if type(data) == type([]):
+                        newData.extend(data)
+                    if type(data) == type({}):
+                        newData.append(data)
+                infoFile.write(json.dumps(newData))
             exportutils.copyFile(infoFilePath, path, depth=depth)
         exportutils.copyFile(tempFilePath, path, depth=depth)
