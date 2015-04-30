@@ -101,7 +101,7 @@ def copyFile(src, des, depth=3):
     des = osp.normpath(des)
     try:
         existingFile = osp.join(des, osp.basename(src))
-        if osp.exists(existingFile):
+        if osp.exists(existingFile) and osp.isfile(existingFile):
             print 'removing %s...'%existingFile
             os.remove(existingFile)
             print 'removed...'
@@ -134,10 +134,6 @@ def showFaceUi():
     pc.showHidden(b=True)
     pc.select(sel)
 
-def getDefaultResolution():
-    node = pc.ls('defaultResolution')[0]
-    res = node.width.get(), node.height.get()
-    return res
 
 def setDefaultResolution(res):
     global __DEFAULT_RESOLUTION__
