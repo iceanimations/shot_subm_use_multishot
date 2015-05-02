@@ -134,10 +134,6 @@ def showFaceUi():
     pc.showHidden(b=True)
     pc.select(sel)
 
-def getDefaultResolution():
-    node = pc.ls('defaultResolution')[0]
-    res = node.width.get(), node.height.get()
-    return res
 
 def setDefaultResolution(res):
     global __DEFAULT_RESOLUTION__
