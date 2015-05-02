@@ -4,6 +4,7 @@ import os.path as osp
 import pymel.core as pc
 import os
 import shutil
+import re
 from . import exportutils
 
 
@@ -36,7 +37,21 @@ class TextureExport(Action):
             conf = self._conf
             self.exportAnimatedTextures(conf)
 
-    def getAnimatedTextures(self, conf):
+    @staticmethod
+    def getAnimatedTextures(conf):
+        ''' read conf to get candidate textures from the scene '''
+        texture_attrs = []
+        for key, attrs in conf.get('texture_export_data', []):
+            for namespace in pc.namespaceInfo(lon=True):
+                if re.match( key, namespace ):
+                    for attr in attrs:
+                        attr = pc.Attribute(namespace + ':' + attr)
+                        texture_attrs.append(attr)
+        return texture_attrs
+
+    def getNameToAttrMapping(self):
+        ''' find attrs in the scene and determine their file texture name '''
+
         nameToAttrMapping = []
         texture_attrs = self.get("texture_attrs", [])
 
@@ -66,7 +81,7 @@ class TextureExport(Action):
         rx = conf['texture_resX']
         ry = conf['texture_resY']
 
-        nameToAttrMapping = self.getAnimatedTextures(conf)
+        nameToAttrMapping = self.getNameToAttrMapping()
 
         if exportAsTextures(nameToAttrMapping, startTime=start_time,
                 endTime=end_time, rx=rx, ry=ry, outputDir=tempFilePath):
