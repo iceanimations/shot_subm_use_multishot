@@ -9,7 +9,7 @@ from . import exportutils
 
 
 PlayListUtils = shotplaylist.Playlist
-Action = shotactions.Actions
+Action = shotactions.Action
 errorsList = []
 
 
