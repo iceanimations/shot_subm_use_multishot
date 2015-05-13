@@ -133,7 +133,7 @@ class Action(OrderedDict):
         for item in pl.get_items():
             action = cls.getActionsFromList(item.actions)
             if action and action.enabled:
-                cls.getActionsFromList(item.actions).perform()
+                cls.getActionFromList(item.actions).perform()
                 yield True
             else:
                 yield False
@@ -150,7 +150,7 @@ class Action(OrderedDict):
     @classmethod
     def getActionFromList(cls, actionlist, forceCreate=True):
         if not isinstance(actionlist, ActionList):
-            raise TypeError, "Only Action lists can be added"
+            raise TypeError, "Only Action lists can be queried"
         action = actionlist.get(cls.__name__)
         if not action and forceCreate:
             action = cls()
