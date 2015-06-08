@@ -227,9 +227,9 @@ class CacheExport(Action):
 
             for name, attr in self.getAnimatedTextures(conf):
                 fileImageName = osp.join(tempFilePath,
-                        '.'.join([name, num, 'iff']))
+                        '.'.join([name, num, 'png']))
                 newobj = pc.convertSolidTx(attr, samplePlane=True, rx=rx, ry=ry,
-                        fil='tif', fileImageName=fileImageName)
+                        fil='png', fileImageName=fileImageName)
                 pc.delete(newobj)
                 textures_exported = True
 
