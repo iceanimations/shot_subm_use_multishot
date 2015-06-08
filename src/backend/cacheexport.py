@@ -15,6 +15,7 @@ from exceptions import *
 import qutil
 reload(qutil)
 import re
+reload(exportutils)
 
 PlayListUtils = shotplaylist.PlaylistUtils
 Action = shotactions.Action
@@ -62,18 +63,18 @@ class CacheExport(Action):
             conf["end_time"] = item.getOutFrame()
             conf["cache_dir"] = self.path.replace('\\', '/')
 
-            if self.exportCache(conf):
+            if self.exportCache(conf, kwargs.get('local')):
 
-                self.exportAnimatedTextures(conf)
+                self.exportAnimatedTextures(conf, kwargs.get('local'))
 
                 pc.delete(map(lambda x: x.getParent(),self.combineMeshes))
                 del self.combineMeshes[:]
 
                 pc.select(item.camera)
-                self.exportCam()
+                self.exportCam(kwargs.get('local'))
 
 
-    def exportCam(self):
+    def exportCam(self, local=False):
         location = osp.splitext(cmds.file(q=True, location=True))
         path = osp.join(osp.dirname(self.path), 'camera')
         itemName = qutil.getNiceName(self.plItem.name)+'_cam'+qutil.getExtension()
@@ -89,6 +90,8 @@ class CacheExport(Action):
                   options="v=0",
                   typ=qutil.getFileType(),
                   pr = False)
+        if local:
+            path = exportutils.getLocalDestination(path)
         exportutils.copyFile(tempFilePath, path)
 
     def getPath(self):
@@ -153,14 +156,16 @@ class CacheExport(Action):
                 meshes[i].worldMatrix[0] >> polyUnite.inputMat[i]
             polyUnite.output >> combineMesh.inMesh
         if mapping:
-            try:
-                with open(osp.join(self.path, 'mappings.txt'), 'w') as f:
-                    f.write(str(mapping))
-            except Exception as ex:
-                errorsList.append(str(ex))
+            pass
+#             try:
+#                 pass
+#                 #with open(osp.join(self.path, 'mappings.txt'), 'w') as f:
+#                 #    f.write(str(mapping))
+#             except Exception as ex:
+#                 errorsList.append(str(ex))
         pc.select(self.combineMeshes)
 
-    def exportCache(self, conf):
+    def exportCache(self, conf, local=False):
         pc.select(cl=True)
         if self.get('objects'):
             path = conf.get('cache_dir')
@@ -174,6 +179,8 @@ class CacheExport(Action):
             try:
                 for phile in os.listdir(tempFilePath):
                     philePath = osp.join(tempFilePath, phile)
+                    if local:
+                        path = exportutils.getLocalDestination(path)
                     exportutils.copyFile(philePath, path)
             except Exception as ex:
                 pc.warning(str(ex))
@@ -197,7 +204,7 @@ class CacheExport(Action):
                         texture_attrs.append((nombre, attr))
         return texture_attrs
 
-    def exportAnimatedTextures(self, conf):
+    def exportAnimatedTextures(self, conf, local=False):
         ''' bake export animated textures from the scene '''
 
         if not self.get('objects'):
@@ -229,12 +236,15 @@ class CacheExport(Action):
         target_dir = osp.join(self.path, 'tex')
         try:
             if not osp.exists(target_dir):
-                os.mkdir(target_dir)
+                if not local:
+                    os.mkdir(target_dir)
         except Exception as ex:
             errorsList.append(str(ex))
 
         for phile in os.listdir(tempFilePath):
             philePath = osp.join(tempFilePath, phile)
+            if local:
+                target_dir = exportutils.getLocalDestination(target_dir, depth=4)
             exportutils.copyFile(philePath, target_dir, depth=4)
 
         return textures_exported

@@ -387,6 +387,11 @@ class Submitter(Form, Base):
         except Exception, ex:
             pass
         try:
+            for directory in os.listdir(exportutils.localPath):
+                shutil.rmtree(osp.join(exportutils.localPath, directory))
+        except Exception, ex:
+            pass
+        try:
             self.exportButton.setEnabled(False)
             self.closeButton.setEnabled(False)
             self.progressBar.show()
@@ -404,7 +409,8 @@ class Submitter(Form, Base):
             self.progressBar.setValue(0)
             generator = self._playlist.performActions(sound=self.audioButton.isChecked(),
                                                       hd=self.hdButton.isChecked(),
-                                                      applyCache=self.applyCacheButton.isChecked())
+                                                      applyCache=self.applyCacheButton.isChecked(),
+                                                      local=self.localButton.isChecked())
             self.progressBar.setMaximum(generator.next())
             qApp.processEvents()
             for i, val in enumerate(generator):

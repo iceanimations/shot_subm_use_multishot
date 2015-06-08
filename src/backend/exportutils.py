@@ -10,9 +10,13 @@ osp = os.path
 import shutil
 import time
 import qutil
+reload(qutil)
 import fillinout
 
 errorsList = []
+localPath = "D:\\multishotexport"
+if not osp.exists(localPath):
+    os.mkdir(localPath)
 
 __original_camera__ = None
 __original_frame__ = None
@@ -95,6 +99,13 @@ def removeFile(path):
         os.remove(path)
     except Exception as ex:
         pc.warning(ex)
+        
+def getLocalDestination(des, depth=3):
+    basename = qutil.basename(des, depth=depth)
+    tempPath = osp.join(localPath, basename)
+    if not osp.exists(tempPath):
+        qutil.mkdir(localPath, basename)
+    return tempPath
 
 def copyFile(src, des, depth=3):
     src = osp.normpath(src)

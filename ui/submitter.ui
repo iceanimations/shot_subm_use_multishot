@@ -316,6 +316,16 @@ padding-bottom: 1px;</string>
        </widget>
       </item>
       <item>
+       <widget class="QCheckBox" name="localButton">
+        <property name="toolTip">
+         <string>Copy all shots to D:\multishotexport</string>
+        </property>
+        <property name="text">
+         <string>Save to local</string>
+        </property>
+       </widget>
+      </item>
+      <item>
        <widget class="QPushButton" name="exportButton">
         <property name="minimumSize">
          <size>

@@ -12,7 +12,8 @@ import maya.cmds as cmds
 from exceptions import *
 import json
 import qutil
-
+reload(qutil)
+reload(exportutils)
 
 
 __poly_count__ = False
@@ -138,7 +139,7 @@ class PlayblastExport(Action):
             exportutils.setDefaultResolution((1280, 720))
             exportutils.turn2dPanZoomOff(item.camera)
 
-            self.makePlayblast(sound=kwargs.get('sound'))
+            self.makePlayblast(sound=kwargs.get('sound'), local=kwargs.get('local'))
             
             #exportutils.restoreDefaultResolution()
             exportutils.removeFrameInfo()
@@ -152,7 +153,7 @@ class PlayblastExport(Action):
                 exportutils.turnResolutionGateOffPer(item.camera)
                 exportutils.setDefaultResolution((1920, 1080))
                 exportutils.removeFrameInfo(all=True)
-                self.makePlayblast(sound=kwargs.get('sound'), hd=True)
+                self.makePlayblast(sound=kwargs.get('sound'), hd=True, local=kwargs.get('local'))
                 showNameLabel()
             exportutils.restoreDefaultResolution()
             exportutils.restore2dPanZoom(item.camera)
@@ -185,7 +186,7 @@ class PlayblastExport(Action):
                 pc.headsUpDisplay(hud, remove=True)
 
 
-    def makePlayblast(self, item=None, sound=None, hd=False):
+    def makePlayblast(self, item=None, sound=None, hd=False, local=False):
         if not item:
             item = self.__item__
             if not item:
@@ -232,5 +233,9 @@ class PlayblastExport(Action):
                     if type(data) == type({}):
                         newData.append(data)
                 infoFile.write(json.dumps(newData))
+            if local:
+                path = exportutils.getLocalDestination(path, depth)
             exportutils.copyFile(infoFilePath, path, depth=depth)
+        if local:
+                path = exportutils.getLocalDestination(path, depth)
         exportutils.copyFile(tempFilePath, path, depth=depth)
