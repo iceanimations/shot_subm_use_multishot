@@ -120,7 +120,7 @@
       <item>
        <widget class="QToolButton" name="addButton">
         <property name="toolTip">
-         <string>Add only selected object(s) (Existing will get removed)</string>
+         <string>Add only selected object(s) (All other will get removed)</string>
         </property>
         <property name="text">
          <string>...</string>
