@@ -41,7 +41,7 @@ def findSetFromRootNode(root):
                 mysets.add(myset)
     return mysets
 
-def findAllConnectedGeosets(mylist=None):
+def findAllConnectedGeosets(mylist=None, restrictToNamespace=True):
     @_memo
     def _rootParent(node):
         if hasattr(node, 'firstParent2'):
@@ -49,6 +49,8 @@ def findAllConnectedGeosets(mylist=None):
         else:
             return None
         if not parent:
+            return node
+        elif restrictToNamespace and parent.namespace() != node.namespace():
             return node
         else:
             return _rootParent(parent)
@@ -88,6 +90,65 @@ def getFromScreen(x, y, x_rect=None, y_rect=None):
     fromScreen = []
     objects.getSelectionStrings(fromScreen)
     return fromScreen
+
+def listSelectedControls():
+    selection = pc.ls(sl=1, type='nurbsCurve', dag=True)
+    return [node.firstParent() for node in selection]
+
+
+def getFuture(node, visited=None):
+    if visited is None:
+        visited = set()
+    outputs = [output for output in node.outputs(type=('constraint',
+        'mesh', 'transform')) if output not in visited]
+    visited.update(outputs)
+    for thing in outputs:
+        getFuture(thing, visited)
+    return visited
+
+
+def findDrivenMeshes(node, done=None):
+    meshes = set()
+    joints = set()
+    if done is None:
+        done = set()
+
+    for obj in node.listRelatives(ad=True):
+        if isinstance(obj, pc.nt.Mesh):
+            meshes.add(obj.firstParent())
+        elif isinstance(obj, pc.nt.Joint):
+            joints.add(obj)
+
+    for obj in getFuture(node):
+        if isinstance(obj, pc.nt.Mesh):
+            meshes.add(obj.firstParent())
+        elif isinstance(obj, pc.nt.Joint):
+            joints.add(obj)
+
+    newdone = done.copy()
+    newdone.update( joints )
+
+    for joint in joints:
+        if joint in done:
+            continue
+        meshes.update(findDrivenMeshes(joint, newdone))
+
+    return meshes
+
+def getSetFromMesh(mesh):
+    return mesh.outputs(type='objectSet')
+
+
+def findGeoSets():
+    controls = listSelectedControls()
+
+    geosets = set()
+    for node in controls:
+        meshes = findDrivenMeshes(node)
+        print meshes
+        for mesh in meshes:
+            geosets.update(getSetFromMesh(mesh))
+    return geosets
 
 #if __name__ == '__main__':
 #    import time
