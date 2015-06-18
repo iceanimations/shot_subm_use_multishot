@@ -51,9 +51,31 @@ __2d_pane_zoom__ = {}
 home = osp.join(osp.expanduser('~'), 'temp_shots_export')
 if not osp.exists(home):
     os.mkdir(home)
-    
+
 def addPbToDb():
     pass
+
+def getSaveFilePath(items):
+    try:
+        items = [item for item in items if item.selected]
+        path = [action for action in items[0].actions.getActions() if action.enabled][0].path.split('SHOTS')[0]
+        path = osp.join(path, 'ANIMATION', 'MULTISHOTEXPORT')
+        if not osp.exists(path):
+            os.mkdir(path)
+        path = osp.join(path , '__'.join([item.name for item in items]))
+        if not osp.exists(path):
+            os.mkdir(path)
+        return path
+    except Exception as ex:
+        errorsList.append('Could not save maya file\nReason: '+ str(ex))
+
+def saveMayaFile(items):
+    filename = cmds.file(q=True, location=True)
+    if filename and osp.exists(filename):
+        path = getSaveFilePath(items)
+        if path and filename:
+            copyFile(filename, path)
+        
 
 def turn2dPanZoomOff(camera):
     global __2d_pane_zoom__

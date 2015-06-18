@@ -418,6 +418,8 @@ class Submitter(Form, Base):
                     errors[val[0].name] = str(val[1])
                 self.progressBar.setValue(i + 1)
                 qApp.processEvents()
+            # copy the file
+            exportutils.saveMayaFile(self.playlist.getItems())
             temp = ' shots ' if len(errors) > 1 else ' shot '
             if errors:
                 detail = ''
@@ -447,8 +449,8 @@ class Submitter(Form, Base):
             for error in exportutils.errorsList:
                 detail += error +'\n\n'
             msgBox.showMessage(self, title='Error',
-                        msg='Unable to copy files to destination\n'+
-                        'your files copied to: '+ exportutils.home,
+                        msg='Errors occurred while exporting shots\n'+
+                        'your files might be copy to: '+ exportutils.home,
                         details=detail,
                         icon=QMessageBox.Warning)
             exportutils.errorsList[:] = []
