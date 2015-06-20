@@ -15,13 +15,21 @@ import fillinout
 
 errorsList = []
 localPath = "D:\\multishotexport"
-drives = qutil.get_drives()
-for drive in drives:
-    if drive in ['D', 'E', 'F']:
-        localPath = drive + ':\\multishotexport'
+# drives = qutil.get_drives()
+# for drive in drives:
+#     if drive in ['D', 'E', 'F']:
+#         localPath = drive + ':\\multishotexport'
 
 if not osp.exists(localPath):
-    os.mkdir(localPath)
+    try:
+        os.mkdir(localPath)
+    except:
+        localPath = 'E:\\multishotexport'
+        if not osp.exists(localPath):
+            try:
+                os.mkdir(localPath)
+            except:
+                pass
 
 __original_camera__ = None
 __original_frame__ = None
