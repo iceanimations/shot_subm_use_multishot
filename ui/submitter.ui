@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>761</width>
+    <width>816</width>
     <height>745</height>
    </rect>
   </property>
@@ -120,7 +120,7 @@ padding-bottom: 1px;</string>
         <rect>
          <x>0</x>
          <y>0</y>
-         <width>739</width>
+         <width>794</width>
          <height>600</height>
         </rect>
        </property>
@@ -227,7 +227,7 @@ padding-bottom: 1px;</string>
        </spacer>
       </item>
       <item>
-       <widget class="QLabel" name="label_2">
+       <widget class="QLabel" name="hudLabel">
         <property name="text">
          <string>HUD Color:</string>
         </property>
@@ -342,6 +342,19 @@ padding-bottom: 1px;</string>
        </widget>
       </item>
       <item>
+       <widget class="QPushButton" name="stopButton">
+        <property name="minimumSize">
+         <size>
+          <width>75</width>
+          <height>0</height>
+         </size>
+        </property>
+        <property name="text">
+         <string>Stop</string>
+        </property>
+       </widget>
+      </item>
+      <item>
        <widget class="QPushButton" name="closeButton">
         <property name="minimumSize">
          <size>
@@ -376,7 +389,7 @@ padding-bottom: 1px;</string>
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>761</width>
+     <width>816</width>
      <height>19</height>
     </rect>
    </property>

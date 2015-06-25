@@ -44,6 +44,7 @@ class Submitter(Form, Base):
         self.progressBar.hide()
 
         self.collapsed = False
+        self.stop = False
         self.breakdownWindow = None
         
         self.addButton.setIcon(QIcon(osp.join(icon_path, 'ic_add.png')))
@@ -72,11 +73,18 @@ class Submitter(Form, Base):
         self.playblastEnableAction.triggered.connect(self.enablePlayblastSelected)
         self.playblastDisableAction.triggered.connect(self.disablePlayblastSelected)
         self.sceneBreakdownButton.clicked.connect(self.sceneBreakdown)
+        self.stopButton.clicked.connect(self.setStop)
 
         # Populating Items
         self._playlist = Playlist()
         self.items = []
         self.populate()
+        
+        self.hudLabel.hide()
+        self.colorBox.hide()
+        self.applyCacheButton.hide()
+        self.audioButton.hide()
+        self.stopButton.hide()
 
         appUsageApp.updateDatabase('shot_subm')
         
@@ -308,8 +316,13 @@ class Submitter(Form, Base):
                         objects.append(_set)
         return []
         return objects
+    
+    def setStop(self):
+        self.stop = True
 
     def export(self):
+        self.stopButton.show()
+        self.closeButton.hide()
         # check if at least one item is selected
         if not self.isItemSelected():
             msgBox.showMessage(self, title='No selection',
@@ -418,6 +431,10 @@ class Submitter(Form, Base):
                     errors[val[0].name] = str(val[1])
                 self.progressBar.setValue(i + 1)
                 qApp.processEvents()
+                if self.stop:
+                    self.stop = False
+                    break
+                qApp.processEvents()
             # copy the file
             exportutils.saveMayaFile(self.playlist.getItems())
             temp = ' shots ' if len(errors) > 1 else ' shot '
@@ -443,6 +460,8 @@ class Submitter(Form, Base):
             backend.playblast.removeNameLabel()
             self.exportButton.setEnabled(True)
             self.closeButton.setEnabled(True)
+            self.stopButton.hide()
+            self.closeButton.show()
 
         if exportutils.errorsList:
             detail = ''

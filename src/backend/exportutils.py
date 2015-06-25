@@ -82,7 +82,7 @@ def saveMayaFile(items):
     if filename and osp.exists(filename):
         path = getSaveFilePath(items)
         if path and filename:
-            copyFile(filename, path)
+            copyFile(filename, path, move=False)
         
 
 def turn2dPanZoomOff(camera):
@@ -142,7 +142,7 @@ def getLocalDestination(des, depth=3):
         qutil.mkdir(localPath, basename)
     return tempPath
 
-def copyFile(src, des, depth=3):
+def copyFile(src, des, depth=3, move=True):
     src = osp.normpath(src)
     des = osp.normpath(des)
     try:
@@ -166,7 +166,8 @@ def copyFile(src, des, depth=3):
             pc.warning(ex2)
         errorsList.append(str(ex))
     finally:
-        os.remove(src)
+        if move:
+            os.remove(src)
 
 def hideFaceUi():
     sel = pc.ls(sl=True)
