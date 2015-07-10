@@ -296,25 +296,18 @@ class Submitter(Form, Base):
                                 shots[item.name] = [action.path]
         return shots
     
-    def objectsConnected(self):
+    def ldLinked(self):
         objects = []
         for item in self.playlist.getItems():
             if item.selected:
                 ce = CacheExport.getActionFromList(item.actions)
                 for _set in ce.get('objects'):
-                    if not exportutils.isConnected(_set):
+                    ref = qutil.getRefFromSet(pc.PyNode(_set))
+                    if ref and osp.exists(str(ref.path)):
+                        if not exportutils.linkedLD(str(ref.path)):
+                            objects.append(_set)
+                    else:
                         objects.append(_set)
-        return objects
-    
-    def objectsCompatible(self):
-        objects = []
-        for item in self.playlist.getItems():
-            if item.selected:
-                ce = CacheExport.getActionFromList(item.actions)
-                for _set in ce.get('objects'):
-                    if not exportutils.isCompatible(_set):
-                        objects.append(_set)
-        return []
         return objects
     
     def setStop(self):
@@ -329,24 +322,22 @@ class Submitter(Form, Base):
                         msg='No shot selected to export',
                         icon=QMessageBox.Information)
             return
-        # check if the sets are connected with the combined models
+        # check if the rig files are linked with the LD files
         if self.applyCacheButton.isChecked():
-            badObjects = self.objectsConnected()
+            badObjects = self.ldLinked()
             if badObjects:
                 numObjects = len(badObjects)
                 s = 's' if numObjects > 1 else ''
                 detail = ''
                 for obj in badObjects:
                     detail += obj +'\n'
-                btn = msgBox.showMessage(self, title='LD Error',
-                                         msg='Could not find LD path for '+str(numObjects) +' set'+ s+
-                                         '\nIf you proceed, cache will not be applied to the LDs',
-                                         ques='Do you want to proceed?',
-                                         btns=QMessageBox.Yes|QMessageBox.No,
-                                         details = detail,
-                                         icon=QMessageBox.Information)
-                if btn == QMessageBox.No:
-                    return
+                msgBox.showMessage(self, title='LD Error',
+                                   msg='Could not find LD path for '+str(numObjects) +' set'+ s+
+                                   '\nThere is no guarantee that the exported cache will be compatible with the LD',
+                                   details = detail,
+                                   icon=QMessageBox.Information)
+                return
+                
         # check if at least one action is enaled for all selected items
         badShots = self.isActionEnabled()
         if badShots:
@@ -473,7 +464,7 @@ class Submitter(Form, Base):
                         details=detail,
                         icon=QMessageBox.Warning)
             exportutils.errorsList[:] = []
-            
+
         if cacheexport.errorsList:
             detail = ''
             for error in cacheexport.errorsList:

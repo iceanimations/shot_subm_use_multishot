@@ -145,8 +145,8 @@ class CacheExport(Action):
             names.add(name)
             pc.rename(combineMesh, name)
             try:
-                mapping[osp.normpath(osp.join(self.path, name))] = pc.PyNode(objectSet).forCache.get()
-            except AttributeError:
+                mapping[osp.normpath(osp.join(self.path, name))] = str(qutil.getRefFromSet(pc.PyNode(objectSet)).path)
+            except:
                 mapping[osp.normpath(osp.join(self.path, name))] = ''
             self.combineMeshes.append(combineMesh)
             polyUnite = pc.createNode("polyUnite")
@@ -156,13 +156,19 @@ class CacheExport(Action):
                 meshes[i].worldMatrix[0] >> polyUnite.inputMat[i]
             polyUnite.output >> combineMesh.inMesh
         if mapping:
-            pass
-#             try:
-#                 pass
-#                 #with open(osp.join(self.path, 'mappings.txt'), 'w') as f:
-#                 #    f.write(str(mapping))
-#             except Exception as ex:
-#                 errorsList.append(str(ex))
+            try:
+                with open(osp.join(self.path, 'mappings.txt'), 'w') as f:
+                    f.write(str(mapping))
+                    f.close()
+            except Exception as ex:
+                errorsList.append(str(ex))
+            try:
+                envPath = exportutils.getEnvFilePath()
+                with open(osp.join(self.path, 'environment.txt'), 'w') as f:
+                    f.write(str(envPath))
+                    f.close()
+            except Exception as ex:
+                errorsList.append(str(ex))
         pc.select(self.combineMeshes)
 
     def exportCache(self, conf, local=False):
@@ -248,5 +254,3 @@ class CacheExport(Action):
             exportutils.copyFile(philePath, target_dir, depth=4)
 
         return textures_exported
-
-

@@ -12,6 +12,7 @@ import time
 import qutil
 reload(qutil)
 import fillinout
+reload(fillinout)
 
 errorsList = []
 localPath = "D:\\multishotexport"
@@ -59,9 +60,16 @@ __2d_pane_zoom__ = {}
 home = osp.join(osp.expanduser('~'), 'temp_shots_export')
 if not osp.exists(home):
     os.mkdir(home)
-
-def addPbToDb():
-    pass
+    
+def linkedLD(rigPath):
+    return True
+    
+def getEnvFilePath():
+    envs = []
+    for ref in qutil.getReferences():
+        if 'environment' in ref.path.lower():
+            envs.append(str(ref.path))
+    return envs
 
 def getSaveFilePath(items):
     try:
