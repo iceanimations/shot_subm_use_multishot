@@ -34,7 +34,7 @@ class CacheExport(Action):
     @staticmethod
     def initConf():
         conf = dict()
-        conf["version"] = 5
+        conf["version"] = 6
         conf["time_range_mode"] = 0
         conf["cache_file_dist"] = "OneFile"
         conf["refresh_during_caching"] = 0

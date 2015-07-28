@@ -314,8 +314,8 @@ doCreateGeometryCache2 =r'''global proc string[] doCreateGeometryCache2 ( int $v
         return $cacheFiles;
 };'''
 
-doCreateGeometryCache3 = '''
-global proc string[] doCreateGeometryCache( int $version, string $args[] )
+doCreateGeometryCache3 = r'''
+global proc string[] doCreateGeometryCache3( int $version, string $args[] )
 //
 // Description:
 //	Create cache files on disk for the selected shape(s) according
@@ -690,7 +690,7 @@ global proc string[] doCreateGeometryCache( int $version, string $args[] )
 	return $cacheFiles;
 }
 '''
+
 pc.Mel.eval(doCreateGeometryCache2)
 pc.Mel.eval(doCreateGeometryCache3)
-
 
