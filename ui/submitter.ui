@@ -120,7 +120,7 @@ padding-bottom: 1px;</string>
         <rect>
          <x>0</x>
          <y>0</y>
-         <width>794</width>
+         <width>796</width>
          <height>600</height>
         </rect>
        </property>
@@ -227,53 +227,6 @@ padding-bottom: 1px;</string>
        </spacer>
       </item>
       <item>
-       <widget class="QLabel" name="hudLabel">
-        <property name="text">
-         <string>HUD Color:</string>
-        </property>
-       </widget>
-      </item>
-      <item>
-       <widget class="QComboBox" name="colorBox">
-        <property name="enabled">
-         <bool>false</bool>
-        </property>
-        <item>
-         <property name="text">
-          <string>Default</string>
-         </property>
-        </item>
-        <item>
-         <property name="text">
-          <string>Red</string>
-         </property>
-        </item>
-        <item>
-         <property name="text">
-          <string>Green</string>
-         </property>
-        </item>
-        <item>
-         <property name="text">
-          <string>Yellow</string>
-         </property>
-        </item>
-       </widget>
-      </item>
-      <item>
-       <spacer name="horizontalSpacer_2">
-        <property name="orientation">
-         <enum>Qt::Horizontal</enum>
-        </property>
-        <property name="sizeHint" stdset="0">
-         <size>
-          <width>40</width>
-          <height>20</height>
-         </size>
-        </property>
-       </spacer>
-      </item>
-      <item>
        <widget class="QCheckBox" name="applyCacheButton">
         <property name="enabled">
          <bool>false</bool>
@@ -296,6 +249,13 @@ padding-bottom: 1px;</string>
         </property>
         <property name="checked">
          <bool>true</bool>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QCheckBox" name="hdOnlyButton">
+        <property name="text">
+         <string>HD Only</string>
         </property>
        </widget>
       </item>
@@ -390,7 +350,7 @@ padding-bottom: 1px;</string>
      <x>0</x>
      <y>0</y>
      <width>816</width>
-     <height>19</height>
+     <height>22</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuOptions">
@@ -442,12 +402,28 @@ padding-bottom: 1px;</string>
    <slot>deleteLater()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>381</x>
-     <y>735</y>
+     <x>805</x>
+     <y>718</y>
     </hint>
     <hint type="destinationlabel">
      <x>85</x>
      <y>500</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>hdButton</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>hdOnlyButton</receiver>
+   <slot>setEnabled(bool)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>332</x>
+     <y>710</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>375</x>
+     <y>711</y>
     </hint>
    </hints>
   </connection>

@@ -74,19 +74,21 @@ class Submitter(Form, Base):
         self.playblastDisableAction.triggered.connect(self.disablePlayblastSelected)
         self.sceneBreakdownButton.clicked.connect(self.sceneBreakdown)
         self.stopButton.clicked.connect(self.setStop)
+        self.hdButton.toggled.connect(self.hdToggled)
 
         # Populating Items
         self._playlist = Playlist()
         self.items = []
         self.populate()
         
-        self.hudLabel.hide()
-        self.colorBox.hide()
         self.applyCacheButton.hide()
         self.audioButton.hide()
         self.stopButton.hide()
 
         appUsageApp.updateDatabase('shot_subm')
+        
+    def hdToggled(self, val):
+        if not val: self.hdOnlyButton.setChecked(False)
         
     def sceneBreakdown(self):
         if self.breakdownWindow:
@@ -256,8 +258,6 @@ class Submitter(Form, Base):
         return item
 
     def setHUDColor(self):
-        #color = str(self.colorBox.currentText())
-        #if color and color != 'Default':
         color = 'Green'
         exportutils.setHUDColor(self.__colors_mapping__.get(color),
                                 self.__colors_mapping__.get(color))
@@ -414,7 +414,8 @@ class Submitter(Form, Base):
             generator = self._playlist.performActions(sound=self.audioButton.isChecked(),
                                                       hd=self.hdButton.isChecked(),
                                                       applyCache=self.applyCacheButton.isChecked(),
-                                                      local=self.localButton.isChecked())
+                                                      local=self.localButton.isChecked(),
+                                                      hdOnly=self.hdOnlyButton.isChecked())
             self.progressBar.setMaximum(generator.next())
             qApp.processEvents()
             for i, val in enumerate(generator):

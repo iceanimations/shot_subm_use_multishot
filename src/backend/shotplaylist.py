@@ -97,9 +97,6 @@ class Playlist(object):
         return items
 
     def performActions(self, **kwargs):
-        #for item in self.getItems():
-        #    if item.selected:
-        #        item.actions.perform()
         allActions = []
         for item in self.getItems():
             if item.selected:

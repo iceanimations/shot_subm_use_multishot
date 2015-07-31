@@ -125,10 +125,8 @@ class CacheExport(Action):
         count = 1
         for objectSet in [setName for setName in objSets
                           if type(pc.PyNode(setName)) != pc.nt.Mesh]:
-            #pc.select(pc.PyNode(objectSet).members())
             meshes = [shape
                       for transform in pc.PyNode(objectSet).dsm.inputs(
-                              #type = "transform"
                               )
                       for shape in transform.getShapes(type = "mesh",
                                                        ni = True)]
@@ -151,7 +149,6 @@ class CacheExport(Action):
             self.combineMeshes.append(combineMesh)
             polyUnite = pc.createNode("polyUnite")
             for i in xrange(0, len(meshes)):
-                #print meshes[i].firstParent()
                 meshes[i].outMesh >> polyUnite.inputPoly[i]
                 meshes[i].worldMatrix[0] >> polyUnite.inputMat[i]
             polyUnite.output >> combineMesh.inMesh
@@ -202,6 +199,7 @@ class CacheExport(Action):
         for key, attrs in conf['texture_export_data']:
             for obj in self.objects:
                 if re.match( key, obj.name() ):
+                    #TODO: tex is creating even if there is no nano
                     name = obj.name()
                     namespace = ':'.join(name.split(':')[:-1])
                     for attr in attrs:
