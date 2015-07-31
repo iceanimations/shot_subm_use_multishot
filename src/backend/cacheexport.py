@@ -34,7 +34,7 @@ class CacheExport(Action):
     @staticmethod
     def initConf():
         conf = dict()
-        conf["version"] = 5
+        conf["version"] = 6
         conf["time_range_mode"] = 0
         conf["cache_file_dist"] = "OneFile"
         conf["refresh_during_caching"] = 0
@@ -53,6 +53,7 @@ class CacheExport(Action):
                 ("(?i).*nano.*", ["ExpRenderPlaneMtl.outColor"])]
         conf["texture_resX"] = 1024
         conf["texture_resY"] = 1024
+        conf["worldSpace"] = 1
         return conf
 
     def perform(self, **kwargs):
@@ -175,7 +176,7 @@ class CacheExport(Action):
             tempFilePath = osp.join(self.tempPath, 'cache')
             tempFilePath = tempFilePath.replace('\\', '/')
             conf['cache_dir'] = tempFilePath
-            command =  'doCreateGeometryCache2 {version} {{ "{time_range_mode}", "{start_time}", "{end_time}", "{cache_file_dist}", "{refresh_during_caching}", "{cache_dir}", "{cache_per_geo}", "{cache_name}", "{cache_name_as_prefix}", "{action_to_perform}", "{force_save}", "{simulation_rate}", "{sample_multiplier}", "{inherit_modf_from_cache}", "{store_doubles_as_float}", "{cache_format}"}};'.format(**conf)
+            command =  'doCreateGeometryCache3 {version} {{ "{time_range_mode}", "{start_time}", "{end_time}", "{cache_file_dist}", "{refresh_during_caching}", "{cache_dir}", "{cache_per_geo}", "{cache_name}", "{cache_name_as_prefix}", "{action_to_perform}", "{force_save}", "{simulation_rate}", "{sample_multiplier}", "{inherit_modf_from_cache}", "{store_doubles_as_float}", "{cache_format}", "{worldSpace}"}};'.format(**conf)
             self.MakeMeshes(self.get('objects'))
             pc.Mel.eval(command)
             tempFilePath = tempFilePath.replace('/', '\\\\')

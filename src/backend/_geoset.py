@@ -16,7 +16,7 @@ def _memo(func):
 def getGeosets():
     geosets = []
     for node in pc.ls(exactType='objectSet'):
-        if 'geo_set' in node.name().split('|')[-1].split(':')[-1].lower():
+        if 'geo_set' in node.name().lower():
             geosets.append(node)
     return geosets
 
