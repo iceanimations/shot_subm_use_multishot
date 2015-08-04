@@ -771,7 +771,7 @@ class ShotForm(Form1, Base1):
             start, end = self.getKeyFrame(cam)
             playblastPath = self.getPlayblastPath(pathName)
             cachePath = self.getCachePath(pathName)
-            self.create(name, cam, start, end, playblastPath, cachePath)
+            self.create(pathName, cam, start, end, playblastPath, cachePath)
             self.progressBar.setValue(i+1)
             qApp.processEvents()
         self.progressBar.hide()
