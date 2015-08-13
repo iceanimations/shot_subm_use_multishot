@@ -353,7 +353,7 @@ class Submitter(Form, Base):
             return
         # check if paths for playblast and cache exist for all selected items
         badShots = self.allPathsExist()
-        if badShots:
+        if badShots and not self.localButton.isChecked():
             numShots = len(badShots)
             s = 's' if numShots > 1 else ''
             detail = ''
