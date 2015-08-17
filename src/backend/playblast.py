@@ -207,7 +207,6 @@ class PlayblastExport(Action):
                      quality=100, widthHeight=exportutils.getDefaultResolution(),
                      offScreen=1)
         tempFilePath += '.mov'
-        depth = 3
         if hd:
             depth = 4
             path = osp.join(self.path, 'HD')
@@ -215,27 +214,28 @@ class PlayblastExport(Action):
                 os.mkdir(path)
             except: pass
         else:
+            depth = 3
             path = self.path
-            infoFilePath = osp.join(osp.dirname(tempFilePath), itemName+'.json')
-            infoFileOrigPath = osp.join(path, itemName+'.json')
-            data = ''
-            if osp.exists(infoFileOrigPath):
-                with open(infoFileOrigPath) as ifr:
-                    data = json.loads(ifr.read())
-            with open(infoFilePath, 'a') as infoFile:
-                newData = [{'user': getUsername(), 'time': pc.date(format="DD/MM/YYYY hh:mm"),
-                            'inOut': '-'.join([str(item.inFrame), str(item.outFrame)]),
-                            'name': itemName,
-                            'focalLength': item.camera.focalLength.get()}]
-                if data:
-                    if type(data) == type([]):
-                        newData.extend(data)
-                    if type(data) == type({}):
-                        newData.append(data)
-                infoFile.write(json.dumps(newData))
-            if local:
-                path = exportutils.getLocalDestination(path, depth)
-            exportutils.copyFile(infoFilePath, path, depth=depth)
+        infoFilePath = osp.join(osp.dirname(tempFilePath), itemName+'.json')
+        infoFileOrigPath = osp.join(path, itemName+'.json')
+        data = ''
+        if osp.exists(infoFileOrigPath):
+            with open(infoFileOrigPath) as ifr:
+                data = json.loads(ifr.read())
+        with open(infoFilePath, 'a') as infoFile:
+            newData = [{'user': getUsername(), 'time': pc.date(format="DD/MM/YYYY hh:mm"),
+                        'inOut': '-'.join([str(item.inFrame), str(item.outFrame)]),
+                        'name': itemName,
+                        'focalLength': item.camera.focalLength.get()}]
+            if data:
+                if type(data) == type([]):
+                    newData[0]['user'] = data[0]['user']
+                    newData.extend(data)
+                if type(data) == type({}):
+                    newData[0]['user'] = data['user']
+                    newData.append(data)
+            infoFile.write(json.dumps(newData))
         if local:
-                path = exportutils.getLocalDestination(path, depth)
+            path = exportutils.getLocalDestination(path, depth)
+        exportutils.copyFile(infoFilePath, self.path, depth=3)
         exportutils.copyFile(tempFilePath, path, depth=depth)
