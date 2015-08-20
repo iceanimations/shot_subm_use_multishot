@@ -310,10 +310,23 @@ class Submitter(Form, Base):
                         objects.append(_set)
         return objects
     
+    def allCamerasGood(self):
+        shots = []
+        for item in self.playlist.getItems():
+            if item.selected:
+                if not exportutils.camHasKeys(item.camera):
+                    shots.append(item.name)
+        return shots
+    
     def setStop(self):
         self.stop = True
-
+        
     def export(self):
+        self.exportNow()
+        self.stopButton.hide()
+        self.closeButton.show()
+
+    def exportNow(self):
         self.stopButton.show()
         self.closeButton.hide()
         # check if at least one item is selected
@@ -384,6 +397,16 @@ class Submitter(Form, Base):
                                     'keep only one audio file',
                                     icon=QMessageBox.Information)
                 return
+        # check if all the selected shots' cameras got keys (in out)
+        badShots = self.allCamerasGood()
+        if badShots:
+            s = 's' if len(badShots) > 1 else ''
+            ss = '' if len(badShots) > 1 else 'es'
+            msgBox.showMessage(self, title='Bad Cameras',
+                               msg='Camera%s in %s selected shot%s do%s not have keys (in out)'%(s, len(badShots), s, ss),
+                               icon=QMessageBox.Information,
+                               details='\n'.join(badShots))
+            return
         # removes the directories from temp_shots_export directory in home directory
         try:
             for directory in os.listdir(exportutils.home):

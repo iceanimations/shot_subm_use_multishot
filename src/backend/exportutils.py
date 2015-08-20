@@ -60,7 +60,11 @@ __2d_pane_zoom__ = {}
 home = osp.join(osp.expanduser('~'), 'temp_shots_export')
 if not osp.exists(home):
     os.mkdir(home)
-    
+
+def camHasKeys(camera):
+    return pc.listConnections(camera, scn=True, d=False, s=True)
+    #if len(pc.keyframe(animCurves[0], q=True)) > 2: badCams.append(cam)
+
 def linkedLD(rigPath):
     return True
     
