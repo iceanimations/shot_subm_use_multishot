@@ -155,16 +155,21 @@ class CacheExport(Action):
             polyUnite.output >> combineMesh.inMesh
         if mapping:
             try:
+                data = None
+                mappingsPath = osp.join(self.path, 'mappings.txt')
+                if osp.exists(mappingsPath):
+                    with open(mappingsPath) as fr:
+                        data = eval(fr.read())
                 with open(osp.join(self.path, 'mappings.txt'), 'w') as f:
+                    if data:
+                        mapping.update(data)
                     f.write(str(mapping))
-                    f.close()
             except Exception as ex:
                 errorsList.append(str(ex))
             try:
                 envPath = exportutils.getEnvFilePath()
                 with open(osp.join(self.path, 'environment.txt'), 'w') as f:
                     f.write(str(envPath))
-                    f.close()
             except Exception as ex:
                 errorsList.append(str(ex))
         pc.select(self.combineMeshes)
