@@ -50,7 +50,11 @@ class CacheExport(Action):
         conf["cache_format"] = "mcc"
         conf["do_texture_export"] = 1
         conf["texture_export_data"] = [
-                ("(?i).*nano.*", ["ExpRenderPlaneMtl.outColor"])]
+                ("(?i).*nano_regular.*", ["ExpRenderPlaneMtl.outColor"]),
+                ("(?i).*nano_docking.*", ["ExpRenderPlaneMtl.outColor"]),
+                ("(?i).*nano_covered.*", ["ExpRenderPlaneMtl.outColor"]),
+                ("(?i).*nano_with_bowling_arm.*", ["ExpRenderPlaneMtl.outColor"]),
+                ("(?i).*nano_shawarma.*", ["NanoShawarmaExpRenderPlaneMtl.outColor"])]
         conf["texture_resX"] = 1024
         conf["texture_resY"] = 1024
         conf["worldSpace"] = 1
