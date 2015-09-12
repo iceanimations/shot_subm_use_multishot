@@ -9,6 +9,7 @@ import pymel.core as pc
 import maya.cmds as cmds
 import os.path as osp
 import shutil
+import fillinout
 import os
 import exportutils
 from exceptions import *
@@ -71,19 +72,43 @@ class CacheExport(Action):
                 pc.delete(map(lambda x: x.getParent(),self.combineMeshes))
                 del self.combineMeshes[:]
 
-                pc.select(item.camera)
-                self.exportCam(kwargs.get('local'))
+                self.exportCam(item.camera)
 
 
-    def exportCam(self, local=False):
+    def exportCam(self, orig_cam):
         location = osp.splitext(cmds.file(q=True, location=True))
         path = osp.join(osp.dirname(self.path), 'camera')
         itemName = qutil.getNiceName(self.plItem.name)+'_cam'+qutil.getExtension()
         tempFilePath = osp.join(self.tempPath, itemName)
-
+        pc.select(orig_cam)
+        duplicate_cam = pc.duplicate(rr=True, name='mutishot_export_duplicate_camera')[0]
+        pc.parent(duplicate_cam, w=True)
+        pc.select([orig_cam, duplicate_cam])
+        constraints = set(pc.ls(type=pc.nt.ParentConstraint))
+        pc.mel.eval('doCreateParentConstraintArgList 1 { "1","0","0","0","0","0","0","1","","1" };')
+        if constraints:
+            cons = set(pc.ls(type=pc.nt.ParentConstraint)).difference(constraints).pop()
+        else:
+            cons = pc.ls(type=pc.nt.ParentConstraint)[0]
+        pc.select(cl=True)
+        pc.select(duplicate_cam)
+        pc.mel.eval('bakeResults -simulation true -t "%s:%s" -sampleBy 1 -disableImplicitControl true -preserveOutsideKeys true -sparseAnimCurveBake false -removeBakedAttributeFromLayer false -removeBakedAnimFromLayer false -bakeOnOverrideLayer false -minimizeRotation true -controlPoints false -shape true {\"%s\"};'%(self.plItem.inFrame, self.plItem.outFrame, duplicate_cam.name()))
+        pc.delete(cons)
+        pc.select(duplicate_cam)
+        name = orig_cam.name()
+        pc.rename(orig_cam, 'temp_cam_name_from_multiShotExport')
+        pc.rename(duplicate_cam, name)
+        for node in pc.listConnections(orig_cam.getShape()):
+            if isinstance(node, pc.nt.AnimCurve):
+                try:
+                    attr = node.outputs(plugs=True)[0].name().split('.')[-1]
+                except IndexError:
+                    continue
+                attribute = '.'.join([duplicate_cam.name(), attr])
+                node.output.connect(attribute, f=True)
         tempFilePath = pc.exportSelected(tempFilePath,
                   force=True,
-                  expressions = False,
+                  expressions = True,
                   constructionHistory = False,
                   channels = True,
                   shader = False,
@@ -94,6 +119,8 @@ class CacheExport(Action):
         if local:
             path = exportutils.getLocalDestination(path)
         exportutils.copyFile(tempFilePath, path)
+        pc.delete(duplicate_cam)
+        pc.rename(orig_cam, name)
 
     def getPath(self):
         return self.get('path')
