@@ -51,7 +51,11 @@ class CacheExport(Action):
         conf["cache_format"] = "mcc"
         conf["do_texture_export"] = 1
         conf["texture_export_data"] = [
-                ("(?i).*nano.*", ["ExpRenderPlaneMtl.outColor"])]
+                ("(?i).*nano_regular.*", ["ExpRenderPlaneMtl.outColor"]),
+                ("(?i).*nano_docking.*", ["ExpRenderPlaneMtl.outColor"]),
+                ("(?i).*nano_covered.*", ["ExpRenderPlaneMtl.outColor"]),
+                ("(?i).*nano_with_bowling_arm.*", ["ExpRenderPlaneMtl.outColor"]),
+                ("(?i).*nano_shawarma.*", ["NanoShawarmaExpRenderPlaneMtl.outColor"])]
         conf["texture_resX"] = 1024
         conf["texture_resY"] = 1024
         conf["worldSpace"] = 1
@@ -261,8 +265,12 @@ class CacheExport(Action):
 
     def exportAnimatedTextures(self, conf, local=False):
         ''' bake export animated textures from the scene '''
+        textures_exported = False
 
         if not self.get('objects'):
+            return False
+        animatedTextures = self.getAnimatedTextures(conf)
+        if not animatedTextures:
             return False
 
         tempFilePath = osp.join(self.tempPath, 'tex')
@@ -274,13 +282,12 @@ class CacheExport(Action):
         end_time = int(self._item.getOutFrame())
         rx = conf['texture_resX']
         ry = conf['texture_resY']
-        textures_exported = False
 
         for curtime in range(start_time, end_time+1):
             num = '%04d'%curtime
             pc.currentTime(curtime, e=True)
 
-            for name, attr in self.getAnimatedTextures(conf):
+            for name, attr in animatedTextures:
                 fileImageName = osp.join(tempFilePath,
                         '.'.join([name, num, 'png']))
                 newobj = pc.convertSolidTx(attr, samplePlane=True, rx=rx, ry=ry,
