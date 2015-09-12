@@ -72,10 +72,10 @@ class CacheExport(Action):
                 pc.delete(map(lambda x: x.getParent(),self.combineMeshes))
                 del self.combineMeshes[:]
 
-                self.exportCam(item.camera)
+                self.exportCam(item.camera, kwargs.get('local'))
 
 
-    def exportCam(self, orig_cam):
+    def exportCam(self, orig_cam, local=False):
         location = osp.splitext(cmds.file(q=True, location=True))
         path = osp.join(osp.dirname(self.path), 'camera')
         itemName = qutil.getNiceName(self.plItem.name)+'_cam'+qutil.getExtension()
@@ -95,9 +95,12 @@ class CacheExport(Action):
         pc.mel.eval('bakeResults -simulation true -t "%s:%s" -sampleBy 1 -disableImplicitControl true -preserveOutsideKeys true -sparseAnimCurveBake false -removeBakedAttributeFromLayer false -removeBakedAnimFromLayer false -bakeOnOverrideLayer false -minimizeRotation true -controlPoints false -shape true {\"%s\"};'%(self.plItem.inFrame, self.plItem.outFrame, duplicate_cam.name()))
         pc.delete(cons)
         pc.select(duplicate_cam)
-        name = orig_cam.name()
+        name = qutil.getNiceName(orig_cam.name())
+        name2 = qutil.getNiceName(orig_cam.firstParent().name())
         pc.rename(orig_cam, 'temp_cam_name_from_multiShotExport')
+        pc.rename(orig_cam.firstParent(), 'temp_group_name_from_multiShotExport')
         pc.rename(duplicate_cam, name)
+        print duplicate_cam.name()
         for node in pc.listConnections(orig_cam.getShape()):
             if isinstance(node, pc.nt.AnimCurve):
                 try:
@@ -121,6 +124,7 @@ class CacheExport(Action):
         exportutils.copyFile(tempFilePath, path)
         pc.delete(duplicate_cam)
         pc.rename(orig_cam, name)
+        pc.rename(orig_cam.firstParent(), name2)
 
     def getPath(self):
         return self.get('path')
