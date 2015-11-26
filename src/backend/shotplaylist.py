@@ -266,7 +266,7 @@ class PlaylistItem(object):
                 inframe, outframe = frames[0], frames[-1]
 
         if not inframe or not outframe:
-            if not self.inFrame or not self.ourFrame:
+            if not self.inFrame or not self.outFrame:
                 self.inFrame, self.outFrame = 0, 1
         else:
             self.inFrame, self.outFrame = inframe, outframe
