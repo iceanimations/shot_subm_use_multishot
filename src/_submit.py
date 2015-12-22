@@ -438,7 +438,8 @@ class Submitter(Form, Base):
                                                       hd=self.hdButton.isChecked(),
                                                       applyCache=self.applyCacheButton.isChecked(),
                                                       local=self.localButton.isChecked(),
-                                                      hdOnly=self.hdOnlyButton.isChecked())
+                                                      hdOnly=self.hdOnlyButton.isChecked(),
+                                                      defaultResolution=self.defaultResolutionButton.isChecked())
             self.progressBar.setMaximum(generator.next())
             qApp.processEvents()
             for i, val in enumerate(generator):

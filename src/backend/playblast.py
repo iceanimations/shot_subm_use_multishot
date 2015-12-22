@@ -136,7 +136,7 @@ class PlayblastExport(Action):
             showDate()
             exportutils.turnResolutionGateOn(item.camera)
             exportutils.showFrameInfo(item)
-            exportutils.setDefaultResolution((1280, 720))
+            exportutils.setDefaultResolution((1280, 720), default=kwargs.get('defaultResolution'))
             exportutils.turn2dPanZoomOff(item.camera)
             if not kwargs.get('hdOnly'):
                 self.makePlayblast(sound=kwargs.get('sound'), local=kwargs.get('local'))

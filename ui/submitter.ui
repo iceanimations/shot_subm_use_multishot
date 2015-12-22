@@ -121,7 +121,7 @@ padding-bottom: 1px;</string>
          <x>0</x>
          <y>0</y>
          <width>796</width>
-         <height>600</height>
+         <height>601</height>
         </rect>
        </property>
        <layout class="QVBoxLayout" name="verticalLayout_4">
@@ -225,6 +225,16 @@ padding-bottom: 1px;</string>
          </size>
         </property>
        </spacer>
+      </item>
+      <item>
+       <widget class="QCheckBox" name="defaultResolutionButton">
+        <property name="toolTip">
+         <string>Get the resolution for preview from render settings</string>
+        </property>
+        <property name="text">
+         <string>Default Resolution</string>
+        </property>
+       </widget>
       </item>
       <item>
        <widget class="QCheckBox" name="applyCacheButton">
@@ -350,7 +360,7 @@ padding-bottom: 1px;</string>
      <x>0</x>
      <y>0</y>
      <width>816</width>
-     <height>22</height>
+     <height>21</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuOptions">
