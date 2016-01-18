@@ -22,6 +22,11 @@ PlayListUtils = shotplaylist.PlaylistUtils
 Action = shotactions.Action
 errorsList = []
 
+mel = """
+source "R:/Pipe_Repo/Users/Qurban/Scripts/openMotion.mel";
+"""
+pc.mel.eval(mel)
+
 class CacheExport(Action):
     def __init__(self, *args, **kwargs):
         super(CacheExport, self).__init__(*args, **kwargs)
@@ -68,7 +73,8 @@ class CacheExport(Action):
             conf["start_time"] = item.getInFrame()
             conf["end_time"] = item.getOutFrame()
             conf["cache_dir"] = self.path.replace('\\', '/')
-
+            pc.select(item.camera)
+            fillinout.fill()
             if self.exportCache(conf, kwargs.get('local')):
 
                 self.exportAnimatedTextures(conf, kwargs.get('local'))
@@ -136,9 +142,12 @@ class CacheExport(Action):
                   options="v=0",
                   typ=qutil.getFileType(),
                   pr = False)
+        tempFilePath2 = osp.splitext(tempFilePath)[0] + '.nk'
+        pc.mel.openMotion(tempFilePath2, '.txt')
         if local:
             path = exportutils.getLocalDestination(path)
         exportutils.copyFile(tempFilePath, path)
+        exportutils.copyFile(tempFilePath2, path)
         if flag:
             pc.delete(duplicate_cam)
             pc.rename(orig_cam, name)
